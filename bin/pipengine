@@ -6,17 +6,29 @@ require 'bio-pipengine'
 
 options = {}
 optparse = OptionParser.new do |opts|
-	opts.banner = "\n\nLauncher for Complex Biological Pipelines . Copyright(C) 2012 Francesco Strozzi\n"
-	opts.on("-a","--analysis FILE","YAML file with analysis and sample details") do |file|
-		options[:analysis] = file
+	opts.banner = "\n\nLauncher for Complex Biological Pipelines . Copyright(C) 2012 Francesco Strozzi\n\n"
+	opts.on("-p","--pipeline FILE","YAML file with pipeline and sample details") do |file|
+		options[:pipeline] = file
+	end
+	opts.on("-f","--samples-file FILE","YAML file with samples name and directory paths") do |file|
+		options[:samples_file] = file
+	end
+	opts.on("-s","--samples SAMPLE1,SAMPLE2",Array,"Sample name to run the pipeline") do |sample|
+		options[:samples] = sample
 	end
   opts.on("-h","--help","Display this screen") do
 		puts opts
 		print "\n"
+		exit
 	end
 end
 
 optparse.parse!
 
-raise OptionParser::MissingArgument,"-a, --analysis FILE\n" if options[:analysis].nil?
-
+if options[:pipeline]
+	Bio::Pipengine.create_pipeline(options[:pipeline])
+elsif options[:samples] && options[:samples_file]
+	Bio::Pipengine.run(options)
+else
+	puts "Check available options: #{$0} -h"
+end

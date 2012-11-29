@@ -1,44 +1,46 @@
 
-pipeline:
+pipeline: resequencing
 
-  name: Resequencing
+resources:
+  fastqc: /storage/software/FastQC/fastqc
+  bwa: /storage/software/bwa-0.6.2/bwa
+  gatk: /storage/software/gatk-lite/GenomeAnalysisTk.jar
+  samtools: /storage/software/samtools
+  samsort: /storage/software/picard-tools-1.77/SortSam.jar
+  mark_dup: /storage/software/picard-tools-1.77/MarkDuplicates.jar
+  bam: /storage/software/bam
+  index: /storage/genomes/bt_umd31/bwa_index/bt_umd31
+  genome: /storage/genomes/bt_umd31/bwa_index/bt_umd31/Bos_taurus.fa
+  
 
-  resources:
-    fastqc: /storage/software/FastQC/fastqc
-    bwa: /storage/software/bwa-0.6.2/bwa
-    gatk: /storage/software/gatk-lite/GenomeAnalysisTk.jar
-    samtools: /storage/software/samtools
-    samsort: /storage/software/picard-tools-1.77/SortSam.jar
-    sammerge: /storage/software/picard-tools-1.77/MergeSamFiles.jar
-    mark_dup: /storage/software/picard-tools-1.77/MarkDuplicates.jar
-    bam: /storage/software/bam
-    index: /storage/genomes/bt_umd31/bwa_index/bt_umd31
-    genome: /storage/genomes/bt_umd31/bwa_index/bt_umd31/Bos_taurus.fa
+step:
+  quality:
+    run: <fastqc> --casava <sample_path>/*.gz -o <output>/QC --noextract -nt 8
+    threads: 8
 
-  step:
-    quality:
-      run: <fastqc> --casava <input> -o <output> -nt <threads>
-      threads: 2
-
-    mapping:
-      run: <bwa> sampe -P <index> <(<bwa> aln -t 4 -q 20 [OPTIONS] <index> <input1>) <(<bwa> aln -t 4 -q 20 <index> <input2>) <input1> <input2> | <samtools> view -Su - | java -Xmx4g -jar /storage/software/picard-tools-1.77/AddOrReplaceReadGroups.jar I=/dev/stdin O=<output>.sorted.bam SO=coordinate LB=[Library Name] PL=illumina PU=PU SM=[Sample Name] TMP_DIR=/data/tmp CREATE_INDEX=true MAX_RECORDS_IN_RAM=1000000
-      threads: 11
+  mapping:
+    run:
+     - ls <sample_path>/*_R1_*.gz | xargs zcat | pigz -p 11 >> R1.fasz
+     - ls <sample_path>/*_R2_*.gz | xargs zcat | pigz -p 11 >> R2.fastq.gz
+     - <bwa> sampe -P <index> <(<bwa> aln -t 4 -q 20 <index> R1.fastq.gz) <(<bwa> aln -t 4 -q 20 <index> R2.fastq.gz) R1.fastq.gz R2.fastq.gz | <samtools> view -Su - | java -Xmx4g -jar /storage/software/picard-tools-1.77/AddOrReplaceReadGroups.jar I=/dev/stdin O=<sample>.sorted.bam SO=coordinate LB=<pipeline> PL=illumina PU=PU SM=<sample> TMP_DIR=/data/tmp CREATE_INDEX=true MAX_RECORDS_IN_RAM=1000000  
+    threads: 11
     
-    bam_merge:
-      run: java -jar -Xmx4g <sammerge> I=<input> O=<output>.all.bam AS=true USE_THREADING=true
+  mark_dup:
+    run: java -Xmx4g -jar <mark_dup> VERBOSITY=INFO MAX_RECORDS_IN_RAM=500000 VALIDATION_STRINGENCY=SILENT INPUT=<sample>.sorted.bam OUTPUT=<sample>.md.sort.bam METRICS_FILE=<sample>.metrics REMOVE_DUPLICATES=false
 
-    mark_dup:
-      run: java -Xmx4g -jar <mark_dup> VERBOSITY=INFO MAX_RECORDS_IN_RAM=500000 VALIDATION_STRINGENCY=SILENT INPUT=<input> OUTPUT=<output>.md.sort.bam METRICS_FILE=<output>.metrics REMOVE_DUPLICATES=false
+  realign_target:
+    run: java -Xmx4g -jar <gatk> -T RealignerTargetCreator -I <sample>.md.sort.bam -nt 8 -R <genome> -o <sample>.indels.intervals
+    threads: 8
 
-    realign_target:
-      run: java -Xmx4g -jar <gatk> -T RealignerTargetCreator -I <input> -nt 8 -R <genome> -o <output>.intervals
-      threads: 8
-    realign:
-      run: java -Xmx4g -jar <gatk> -T IndelRealigner -LOD 0.4 -model USE_READS --disable_bam_indexing --target_intervals <input1> -R <genome> -I <input2> -o <output>.bam
+  realign:
+    run: java -Xmx4g -jar <gatk> -T IndelRealigner -LOD 0.4 -model USE_READS --disable_bam_indexing --target_intervals <sample>.indels.intervals -R <genome> -I <sample>.md.sort.bam -o <sample>.realigned.bam
 
-    calmd:
-      run: <samtools> calmd -r -E -b <input> <genome> > <output>.fixed.bam
+  fixtags:
+    run: <samtools> calmd -r -E -u <sample>.realigned.bam <genome> | <bam> squeeze --in -.ubam --out <sample>.final.bam --rmTags 'XM:i;XG:i;XO:i' --keepDups
 
-    squeeze:
-      run: <bam> squeeze --in <input> --out <output>.final.bam --rmTags 'XM:i;XG:i;XO:i' --keepDups
+  bam_index:
+    run: <samtools> index <sample>.final.bam
+
+  clean:
+    run: ls | grep -v final | xargs rm -fr
 
