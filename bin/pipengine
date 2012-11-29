@@ -2,6 +2,7 @@
 
 require 'optparse'
 $:<< File.expand_path(File.join(File.dirname(File.dirname __FILE__),"lib"))
+require 'bio-pipengine'
 
 options = {}
 optparse = OptionParser.new do |opts|
@@ -18,5 +19,4 @@ end
 optparse.parse!
 
 raise OptionParser::MissingArgument,"-a, --analysis FILE\n" if options[:analysis].nil?
-raise OptionParser::MissingArgument,"-p, --pipeline FILE\n" if options[:pipeline].nil?
 
