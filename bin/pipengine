@@ -13,9 +13,20 @@ optparse = OptionParser.new do |opts|
 	opts.on("-f","--samples-file FILE","YAML file with samples name and directory paths") do |file|
 		options[:samples_file] = file
 	end
-	opts.on("-s","--samples SAMPLE1,SAMPLE2",Array,"Sample name to run the pipeline") do |sample|
+	opts.on("-l","--list SAMPLE1,SAMPLE2...",Array,"List of sample names to run the pipeline") do |sample|
 		options[:samples] = sample
 	end
+
+	opts.on("-s","--steps STEP1,STEP2...",Array,"List of steps to be executed") do |steps|
+		options[:steps] = steps
+	end
+
+	opts.on("-n","--name NAME","Name of the job") {|name| options[:name] = name}
+
+	opts.on("-d","--dry","Dry run. Just create the job script without sending it to the batch system") {|dry| options[:dry] = true}
+
+	opts.on("--local FOLDER","Local output base folder (without sample name)") {|output| options[:local] = output}
+
   opts.on("-h","--help","Display this screen") do
 		puts opts
 		print "\n"
@@ -25,9 +36,7 @@ end
 
 optparse.parse!
 
-if options[:pipeline]
-	Bio::Pipengine.create_pipeline(options[:pipeline])
-elsif options[:samples] && options[:samples_file]
+if options[:pipeline] && options[:samples_file]
 	Bio::Pipengine.run(options)
 else
 	puts "Check available options: #{$0} -h"

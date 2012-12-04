@@ -4,8 +4,6 @@ GEM
     activesupport (3.2.9)
       i18n (~> 0.6)
       multi_json (~> 1.0)
-    bio-grid (0.3.3)
-      uuid
     git (1.2.5)
     i18n (0.6.1)
     jeweler (1.8.4)
@@ -34,8 +32,8 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  bio-grid
   bundler (> 1.0.0)
   jeweler (~> 1.8.4)
   rdoc (~> 3.12)
   shoulda
+  uuid
