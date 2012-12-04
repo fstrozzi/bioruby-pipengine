@@ -4,9 +4,10 @@ module Bio
 		def self.run(options)
 			pipeline = YAML.load_file options[:pipeline]
 			samples = YAML.load_file options[:samples_file]
-			job_opts = {job_name:[], step:[]}
-			cmd = []
-			options[:samples].each do |sample|
+			samples_list = options[:samples] ? samples["samples"].select {|k,v| options[:samples.include? k]} : samples["samples"] 
+			samples_list.each_key do |sample|
+				job_opts = {job_name:[], step:[]}
+				cmd = []
 				options[:steps].each do |step|
 					specs = pipeline["step"][step]
 					if specs["multi"]
@@ -48,19 +49,23 @@ module Bio
 		end
 
 		def self.sub_fields(command,pipeline,sample,samples,output)
-			sample_path = samples[sample]
-			pipeline["resources"].each_key {|r| command.gsub!("<#{r}>",pipeline["resources"][r])}
-			samples["resources"].each_key {|r| command.gsub!("<#{r}>",samples["resources"][r])}
-			command.gsub!('<pipeline>',pipeline["pipeline"])
-			command.scan(/<(\S+)\/sample>/).map {|e| e.first}.each do |input_folder|
-				 #if Dir.exists? samples["resources"]["output"]+"/#{input_folder}"
-					command.gsub!(/<#{input_folder}\/sample>/,samples["resources"]["output"]+"/"+sample+"/"+input_folder+"/"+sample)
-				 #end
+			command_line = command
+			sample_path = samples["samples"][sample]
+			pipeline["resources"].each_key {|r| command_line.gsub!("<#{r}>",pipeline["resources"][r])}
+			samples["resources"].each_key {|r| command_line.gsub!("<#{r}>",samples["resources"][r])}
+			command_line = command_line.gsub('<pipeline>',pipeline["pipeline"])
+			command_line.scan(/<(\S+)\/sample>/).map {|e| e.first}.each do |input_folder|
+				 if Dir.exists? samples["resources"]["output"]+"/#{input_folder}"
+				 	command_line = command_line.gsub(/<#{input_folder}\/sample>/,samples["resources"]["output"]+"/"+sample+"/"+input_folder+"/"+sample)
+				 else
+					warn "Warning: Directory "+samples["resources"]["output"]+"/"+sample+"/"+input_folder+" not found. Assuming input file will be local" 
+					command_line = command_line.gsub(/<#{input_folder}\/sample>/,sample)
+				 end
 			end
-			command.gsub!('<sample>',sample)
-			command.gsub!('<sample_path>',sample_path)
-			command.gsub!('<output>',output)
-			command
+			command_line = command_line.gsub('<sample>',sample)
+			command_line = command_line.gsub('<sample_path>',sample_path)
+			command_line = command_line.gsub('<output>',output)
+			command_line
 		end
 
 		def self.generate_uuid

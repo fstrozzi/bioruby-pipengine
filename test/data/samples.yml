@@ -3,6 +3,6 @@ resources:
   genome: /storage/genomes/bt_umd31/bwa_index/bt_umd31/Bos_taurus.fa
   output: /storage/results
 
-
-sampleA: /ngs_reads/sampleA
-sampleB: /ngs_reads/sampleB
+samples:
+  sampleA: /ngs_reads/sampleA
+  sampleB: /ngs_reads/sampleB

@@ -21,8 +21,6 @@ optparse = OptionParser.new do |opts|
 		options[:steps] = steps
 	end
 
-	opts.on("-n","--name NAME","Name of the job") {|name| options[:name] = name}
-
 	opts.on("-d","--dry","Dry run. Just create the job script without sending it to the batch system") {|dry| options[:dry] = true}
 
 	opts.on("--local FOLDER","Local output base folder (without sample name)") {|output| options[:local] = output}
