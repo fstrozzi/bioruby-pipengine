@@ -45,7 +45,7 @@ module Bio
 				file.write "cp -r #{opts[:output]+"/"+opts[:job_name]}/* #{samples["resources"]["output"]}/#{sample}/#{opts[:step]}\n" if opts[:local]
 				file.write "rm -fr #{opts[:output]+"/"+opts[:job_name]}\n" if opts[:local]
 			end
-			system "qsub job.sh" unless opts[:dry]
+			system "qsub #{opts[:job_name]}_job.sh" unless opts[:dry]
 		end
 
 		def self.sub_fields(command,pipeline,sample,samples,output)
