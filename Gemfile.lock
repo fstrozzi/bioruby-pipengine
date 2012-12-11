@@ -25,6 +25,7 @@ GEM
     shoulda-matchers (1.4.1)
       activesupport (>= 3.0.0)
     systemu (2.5.2)
+    trollop (2.0)
     uuid (2.3.6)
       macaddr (~> 1.0)
 
@@ -36,4 +37,5 @@ DEPENDENCIES
   jeweler (~> 1.8.4)
   rdoc (~> 3.12)
   shoulda
+  trollop
   uuid

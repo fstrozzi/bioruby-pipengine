@@ -21,7 +21,8 @@ Jeweler::Tasks.new do |gem|
   gem.description = %Q{A pipeline manager}
   gem.email = "francesco.strozzi@gmail.com"
   gem.authors = ["Francesco Strozzi"]
-  # dependencies defined in Gemfile
+  gem.files = Dir.glob("lib/**/*.rb")
+	# dependencies defined in Gemfile
 end
 Jeweler::RubygemsDotOrgTasks.new
 

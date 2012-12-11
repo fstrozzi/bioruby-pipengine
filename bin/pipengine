@@ -13,6 +13,7 @@ optparse = OptionParser.new do |opts|
 	opts.on("-f","--samples-file FILE","YAML file with samples name and directory paths") do |file|
 		options[:samples_file] = file
 	end
+	
 	opts.on("-l","--list SAMPLE1,SAMPLE2...",Array,"List of sample names to run the pipeline") do |sample|
 		options[:samples] = sample
 	end
@@ -25,6 +26,8 @@ optparse = OptionParser.new do |opts|
 
 	opts.on("--local FOLDER","Local output base folder (without sample name)") {|output| options[:local] = output}
 
+	opts.on("-c","--create-samples DIR","Create samples.yml file from a Sample directory") {|dir| options[:create] = dir}
+
   opts.on("-h","--help","Display this screen") do
 		puts opts
 		print "\n"
@@ -33,8 +36,10 @@ optparse = OptionParser.new do |opts|
 end
 
 optparse.parse!
-
-if options[:pipeline] && options[:samples_file]
+p ARGV
+if options[:create]
+	Bio::Pipengine::Samples.create_samples options[:create]
+elsif options[:pipeline] && options[:samples_file]
 	Bio::Pipengine.run(options)
 else
 	puts "Check available options: #{$0} -h"

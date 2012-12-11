@@ -4,12 +4,16 @@ module Bio
 		def self.run(options)
 			pipeline = YAML.load_file options[:pipeline]
 			samples = YAML.load_file options[:samples_file]
-			samples_list = options[:samples] ? samples["samples"].select {|k,v| options[:samples.include? k]} : samples["samples"] 
+			samples_list = options[:samples] ? samples["samples"].select {|k,v| options[:samples].include? k} : samples["samples"] 
 			samples_list.each_key do |sample|
 				job_opts = {job_name:[], step:[]}
 				cmd = []
 				options[:steps].each do |step|
 					specs = pipeline["step"][step]
+					if specs.nil?
+						puts "No step #{step} found in #{options[:pipeline]}"
+						exit
+					end
 					if specs["multi"]
 						# handle multi-sample steps
 					else	
@@ -55,10 +59,10 @@ module Bio
 			samples["resources"].each_key {|r| command_line.gsub!("<#{r}>",samples["resources"][r])}
 			command_line = command_line.gsub('<pipeline>',pipeline["pipeline"])
 			command_line.scan(/<(\S+)\/sample>/).map {|e| e.first}.each do |input_folder|
-				 if Dir.exists? samples["resources"]["output"]+"/#{input_folder}"
+				 if Dir.exists? samples["resources"]["output"]+"/"+sample+"/"+input_folder
 				 	command_line = command_line.gsub(/<#{input_folder}\/sample>/,samples["resources"]["output"]+"/"+sample+"/"+input_folder+"/"+sample)
 				 else
-					warn "Warning: Directory "+samples["resources"]["output"]+"/"+sample+"/"+input_folder+" not found. Assuming input file will be local" 
+					warn "Warning: Directory "+samples["resources"]["output"]+"/"+sample+"/"+input_folder+" not found. Assuming input will be in the CWD" 
 					command_line = command_line.gsub(/<#{input_folder}\/sample>/,sample)
 				 end
 			end

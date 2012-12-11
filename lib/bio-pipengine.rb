@@ -1,3 +1,5 @@
 require 'yaml'
 require 'uuid'
+require 'trollop'
 require 'bio/pipengine'
+require 'bio/pipengine/samples'

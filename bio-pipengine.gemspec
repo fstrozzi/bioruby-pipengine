@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Francesco Strozzi"]
-  s.date = "2012-12-05"
+  s.date = "2012-12-07"
   s.description = "A pipeline manager"
   s.email = "francesco.strozzi@gmail.com"
   s.executables = ["pipengine"]
@@ -18,21 +18,9 @@ Gem::Specification.new do |s|
     "README.rdoc"
   ]
   s.files = [
-    ".document",
-    "Gemfile",
-    "Gemfile.lock",
-    "LICENSE.txt",
-    "README.rdoc",
-    "Rakefile",
-    "VERSION",
-    "bin/pipengine",
-    "bioruby-pipengine.gemspec",
     "lib/bio-pipengine.rb",
     "lib/bio/pipengine.rb",
-    "test/data/pipeline.yml",
-    "test/data/samples.yml",
-    "test/helper.rb",
-    "test/test_bioruby-pipengine.rb"
+    "lib/bio/pipengine/samples.rb"
   ]
   s.homepage = "http://github.com/fstrozzi/bioruby-pipengine"
   s.licenses = ["MIT"]
