@@ -15,9 +15,6 @@ options = Trollop::options do
 	opt :groups, "Group of samples to be processed by a given step", :short => "g", :type => :strings
 end
 
-p options
-exit
-
 if options[:create_samples]
 	Bio::Pipengine::Samples.create_samples options[:create_samples]
 elsif options[:pipeline] && options[:samples_file]
