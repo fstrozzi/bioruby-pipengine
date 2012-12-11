@@ -1,44 +1,25 @@
 #!/usr/bin/env ruby
 
-require 'optparse'
 $:<< File.expand_path(File.join(File.dirname(File.dirname __FILE__),"lib"))
 require 'bio-pipengine'
 
-options = {}
-optparse = OptionParser.new do |opts|
-	opts.banner = "\n\nLauncher for Complex Biological Pipelines . Copyright(C) 2012 Francesco Strozzi\n\n"
-	opts.on("-p","--pipeline FILE","YAML file with pipeline and sample details") do |file|
-		options[:pipeline] = file
-	end
-	opts.on("-f","--samples-file FILE","YAML file with samples name and directory paths") do |file|
-		options[:samples_file] = file
-	end
-	
-	opts.on("-l","--list SAMPLE1,SAMPLE2...",Array,"List of sample names to run the pipeline") do |sample|
-		options[:samples] = sample
-	end
-
-	opts.on("-s","--steps STEP1,STEP2...",Array,"List of steps to be executed") do |steps|
-		options[:steps] = steps
-	end
-
-	opts.on("-d","--dry","Dry run. Just create the job script without sending it to the batch system") {|dry| options[:dry] = true}
-
-	opts.on("--local FOLDER","Local output base folder (without sample name)") {|output| options[:local] = output}
-
-	opts.on("-c","--create-samples DIR","Create samples.yml file from a Sample directory") {|dir| options[:create] = dir}
-
-  opts.on("-h","--help","Display this screen") do
-		puts opts
-		print "\n"
-		exit
-	end
+options = Trollop::options do
+	banner = "\n\nLauncher for Complex Biological Pipelines . Copyright(C) 2012 Francesco Strozzi\n\n"   
+	opt :pipeline, "YAML file with pipeline and sample details", :short => "p", :type => :string, :default => "pipeline.yml"
+	opt :samples_file, "YAML file with samples name and directory paths", :short => "f", :type => :string, :default => "samples.yml"
+	opt :samples, "List of sample names to run the pipeline", :type => :strings, :short => "l"
+	opt :steps, "List of steps to be executed", :type => :strings, :short => "s"
+  opt :dry,"Dry run. Just create the job script without sending it to the batch system", :short => "d"
+	opt :local, "Local output base folder (without sample name)", :type => :string
+	opt :create_samples, "Create samples.yml file from a Sample directory", :short => "c", :type => :string
+	opt :groups, "Group of samples to be processed by a given step", :short => "g", :type => :strings
 end
 
-optparse.parse!
-p ARGV
-if options[:create]
-	Bio::Pipengine::Samples.create_samples options[:create]
+p options
+exit
+
+if options[:create_samples]
+	Bio::Pipengine::Samples.create_samples options[:create_samples]
 elsif options[:pipeline] && options[:samples_file]
 	Bio::Pipengine.run(options)
 else
