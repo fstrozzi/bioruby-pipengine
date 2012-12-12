@@ -74,17 +74,12 @@ module Bio
 					sub_placeholders(group_cmd,g,samples,output)
 				end
 			end
-			p command_line
 			command_line = command_line.gsub('<groups>',list.join("\s"))
-			p command_line
 			command_line
 		end
 
 		def self.sub_placeholders(command_line,sample,samples,output)
-			p sample
-			p samples["samples"]
 			sample_path = samples["samples"][sample]
-			p sample_path
 			command_line.scan(/<(\S+)\/sample>/).map {|e| e.first}.each do |input_folder|
       	if Dir.exists? samples["resources"]["output"]+"/"+sample+"/"+input_folder
       		command_line = command_line.gsub(/<#{input_folder}\/sample>/,samples["resources"]["output"]+"/"+sample+"/"+input_folder+"/"+sample)
