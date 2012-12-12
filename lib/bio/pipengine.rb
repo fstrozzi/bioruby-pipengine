@@ -14,20 +14,19 @@ module Bio
 						puts "No step #{step} found in #{options[:pipeline]}"
 						exit
 					end
-					if specs["multi"]
-						# handle multi-sample steps
-					else	
-						job_opts[:cpus] = specs["threads"] ? specs["threads"] : 1
-						job_opts[:output] = options[:local] ? options[:local] : samples["resources"]["output"]+"/"+sample
-						job_opts[:step] << step
-						job_opts[:local] = options[:local]
-						job_opts[:dry] = options[:dry]
-						if specs["run"].kind_of? Array
-							specs["run"].each {|run| cmd << sub_fields(run,pipeline,sample,samples,job_opts[:output]) }
-						else
-							cmd << sub_fields(specs["run"],pipeline,sample,samples,job_opts[:output])
-						end
+					if specs["groups"]
+						options[:groups] = options[:groups] ? options[:groups] : samples["samples"].keys
 					end
+          if specs["run"].kind_of? Array
+            	specs["run"].each {|run| cmd << sub_fields(run,pipeline,sample,samples,job_opts[:output],options[:groups],step) }
+          else
+            	cmd << sub_fields(specs["run"],pipeline,sample,samples,job_opts[:output],options[:groups],step)
+          end
+					job_opts[:cpus] = specs["threads"] ? specs["threads"] : 1
+					job_opts[:output] = options[:local] ? options[:local] : samples["resources"]["output"]+"/"+sample
+					job_opts[:step] << step
+					job_opts[:local] = options[:local]
+					job_opts[:dry] = options[:dry]
 				end
 				job_opts[:job_name] = generate_uuid+"-"+job_opts[:step].join("-")
 				job_opts[:step] = job_opts[:step].join("-")
@@ -52,23 +51,13 @@ module Bio
 			system "qsub #{opts[:job_name]}_job.sh" unless opts[:dry]
 		end
 
-		def self.sub_fields(command,pipeline,sample,samples,output)
+		def self.sub_fields(command,pipeline,sample,samples,output,groups,step)
 			command_line = command
-			sample_path = samples["samples"][sample]
 			pipeline["resources"].each_key {|r| command_line.gsub!("<#{r}>",pipeline["resources"][r])}
 			samples["resources"].each_key {|r| command_line.gsub!("<#{r}>",samples["resources"][r])}
-			command_line = command_line.gsub('<pipeline>',pipeline["pipeline"])
-			command_line.scan(/<(\S+)\/sample>/).map {|e| e.first}.each do |input_folder|
-				 if Dir.exists? samples["resources"]["output"]+"/"+sample+"/"+input_folder
-				 	command_line = command_line.gsub(/<#{input_folder}\/sample>/,samples["resources"]["output"]+"/"+sample+"/"+input_folder+"/"+sample)
-				 else
-					warn "Warning: Directory "+samples["resources"]["output"]+"/"+sample+"/"+input_folder+" not found. Assuming input will be in the CWD" 
-					command_line = command_line.gsub(/<#{input_folder}\/sample>/,sample)
-				 end
-			end
-			command_line = command_line.gsub('<sample>',sample)
-			command_line = command_line.gsub('<sample_path>',sample_path)
-			command_line = command_line.gsub('<output>',output)
+			command_line = command_line.gsub('<pipeline>',pipeline["pipeline"])	
+      command_line = set_groups(command_line,pipeline,groups,samples,output,step) if groups
+			command_line = sub_placeholders(command_line,sample,samples,output) 
 			command_line
 		end
 
@@ -76,5 +65,38 @@ module Bio
 			UUID.new.generate.split("-").first
 		end
 
+		def self.set_groups(command_line,pipeline,groups,samples,output,step)
+			group_cmd = pipeline["step"][step]["groups"]
+			list = groups.map do |g|
+				if g.include? ','
+					g.split(',').map {|sample| sub_placeholders(group_cmd,sample,samples,output)}.join(',')
+				else
+					sub_placeholders(group_cmd,g,samples,output)
+				end
+			end
+			p command_line
+			command_line = command_line.gsub('<groups>',list.join("\s"))
+			p command_line
+			command_line
+		end
+
+		def self.sub_placeholders(command_line,sample,samples,output)
+			p sample
+			p samples["samples"]
+			sample_path = samples["samples"][sample]
+			p sample_path
+			command_line.scan(/<(\S+)\/sample>/).map {|e| e.first}.each do |input_folder|
+      	if Dir.exists? samples["resources"]["output"]+"/"+sample+"/"+input_folder
+      		command_line = command_line.gsub(/<#{input_folder}\/sample>/,samples["resources"]["output"]+"/"+sample+"/"+input_folder+"/"+sample)
+      	else
+        	warn "Warning: Directory "+samples["resources"]["output"]+"/"+sample+"/"+input_folder+" not found. Assuming input will be in the CWD"
+        	command_line = command_line.gsub(/<#{input_folder}\/sample>/,sample)
+      	end
+			end
+      command_line = command_line.gsub('<sample>',sample)
+      command_line = command_line.gsub('<sample_path>',sample_path)
+      command_line = command_line.gsub('<output>',samples["resources"]["output"])
+			command_line	
+		end
 	end
 end
