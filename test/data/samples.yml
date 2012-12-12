@@ -6,3 +6,5 @@ resources:
 samples:
   sampleA: /ngs_reads/sampleA
   sampleB: /ngs_reads/sampleB
+  sampleC: /ngs_reads/sampleC
+  sampleD: /ngs_reads/sampleD
