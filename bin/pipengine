@@ -13,6 +13,7 @@ options = Trollop::options do
 	opt :local, "Local output base folder (without sample name)", :type => :string
 	opt :create_samples, "Create samples.yml file from a Sample directory", :short => "c", :type => :string
 	opt :groups, "Group of samples to be processed by a given step", :short => "g", :type => :strings
+	opt :name, "Analysis name", :short => "n", :type => :string
 end
 
 if options[:create_samples]
