@@ -6,7 +6,7 @@ module Bio
 			samples = YAML.load_file options[:samples_file]
 			samples_list = options[:samples] ? samples["samples"].select {|k,v| options[:samples].include? k} : samples["samples"] 
 			samples_list.each_key do |sample|
-				job_opts = {job_name:[], step:[]}
+				job_opts = {job_name:[], step:[], cpu:[]}
 				cmd = []
 				options[:steps].each do |step|
 					specs = pipeline["step"][step]
@@ -16,37 +16,57 @@ module Bio
 					end
 					if specs["groups"]
 						options[:groups] = options[:groups] ? options[:groups] : samples["samples"].keys
+						job_opts[:groups] = true
 					end
           if specs["run"].kind_of? Array
             	specs["run"].each {|run| cmd << sub_fields(run,pipeline,sample,samples,job_opts[:output],options[:groups],step) }
           else
             	cmd << sub_fields(specs["run"],pipeline,sample,samples,job_opts[:output],options[:groups],step)
           end
-					job_opts[:cpus] = specs["threads"] ? specs["threads"] : 1
-					job_opts[:output] = options[:local] ? options[:local] : samples["resources"]["output"]+"/"+sample
+					job_opts[:cpu] << (specs["cpu"] ||= 1)
+					if options[:local]
+						job_opts[:output] = options[:local]
+					elsif options[:groups]
+						job_opts[:output] = samples["resources"]["output"]
+					else
+						job_opts[:output] = samples["resources"]["output"] + "/"+sample
+					end
 					job_opts[:step] << step
 					job_opts[:local] = options[:local]
 					job_opts[:dry] = options[:dry]
 				end
-				job_opts[:job_name] = generate_uuid+"-"+job_opts[:step].join("-")
-				job_opts[:step] = job_opts[:step].join("-")
+				if options[:name]
+					job_opts[:job_name] = generate_uuid+"-"+options[:name]
+					job_opts[:step] = options[:name]
+				else
+					job_opts[:job_name] = generate_uuid+"-"+job_opts[:step].join("-")
+					job_opts[:step] = job_opts[:step].join("-")
+				end
+				job_opts[:cpu] = job_opts[:cpu].max
 				run_job cmd.join("\n"),job_opts,samples,sample
+				break if options[:groups]
 			end
 			
 		end
 
 		def self.run_job(cmd,opts,samples,sample)
 			File.open(opts[:job_name]+"_job.sh","w") do |file|
-				file.write "#!/bin/bash\n#PBS -N #{opts[:job_name]}\n#PBS -l ncpus=#{opts[:cpus]}\n\n"
+				file.write "#!/bin/bash\n#PBS -N #{opts[:job_name]}\n#PBS -l ncpus=#{opts[:cpu]}\n\n"
 				if opts[:local]
 					file.write "mkdir -p #{opts[:output]+"/"+opts[:job_name]}\ncd #{opts[:output]+"/"+opts[:job_name]}\n"
 				else
-					file.write "mkdir -p #{samples["resources"]["output"]+"/"+sample}/#{opts[:step]}\ncd #{samples["resources"]["output"]+"/"+sample}/#{opts[:step]}\n"
+					file.write "mkdir -p #{opts[:output]}/#{opts[:step]}\ncd #{opts[:output]}/#{opts[:step]}\n"
 				end
 				file.write cmd+"\n"
-				file.write "mkdir -p #{samples["resources"]["output"]}/#{sample}/#{opts[:step]}\n" if opts[:local]
-				file.write "cp -r #{opts[:output]+"/"+opts[:job_name]}/* #{samples["resources"]["output"]}/#{sample}/#{opts[:step]}\n" if opts[:local]
-				file.write "rm -fr #{opts[:output]+"/"+opts[:job_name]}\n" if opts[:local]
+				if opts[:groups] && opts[:local]
+					file.write "mkdir -p #{samples["resources"]["output"]}/#{opts[:step]}\n"
+					file.write "cp -r #{opts[:output]+"/"+opts[:job_name]}/* #{samples["resources"]["output"]}/#{opts[:step]}\n"
+					file.write "rm -fr #{opts[:output]+"/"+opts[:job_name]}\n"
+				elsif opts[:local]
+					file.write "mkdir -p #{samples["resources"]["output"]}/#{sample}/#{opts[:step]}\n"
+					file.write "cp -r #{opts[:output]+"/"+opts[:job_name]}/* #{samples["resources"]["output"]}/#{sample}/#{opts[:step]}\n"
+					file.write "rm -fr #{opts[:output]+"/"+opts[:job_name]}\n"
+				end
 			end
 			system "qsub #{opts[:job_name]}_job.sh" unless opts[:dry]
 		end
@@ -79,6 +99,7 @@ module Bio
 		end
 
 		def self.sub_placeholders(command_line,sample,samples,output)
+			check_sample sample,samples
 			sample_path = samples["samples"][sample]
 			command_line.scan(/<(\S+)\/sample>/).map {|e| e.first}.each do |input_folder|
       	if Dir.exists? samples["resources"]["output"]+"/"+sample+"/"+input_folder
@@ -92,6 +113,13 @@ module Bio
       command_line = command_line.gsub('<sample_path>',sample_path)
       command_line = command_line.gsub('<output>',samples["resources"]["output"])
 			command_line	
+		end
+
+		def self.check_sample(sample,samples)
+			unless samples["samples"].include? sample
+				puts "No sample #{sample} found in samples file!"	
+				exit
+			end
 		end
 	end
 end
