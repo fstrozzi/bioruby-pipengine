@@ -87,6 +87,19 @@ module Bio
 
 		def self.set_groups(command_line,pipeline,groups,samples,output,step)
 			group_cmd = pipeline["step"][step]["groups"]
+			if group_cmd.kind_of? Array
+				group_cmd.each_with_index do |g,index|
+					list = sub_groups(groups,g,samples,output)
+					command_line = command_line.gsub("<groups#{index+1}>",list.join("\s"))
+				end
+			else
+				list = sub_groups(groups,group_cmd,samples,output)
+				command_line = command_line.gsub("<groups#{index+1}>",list.join("\s"))
+			end
+			command_line
+		end
+
+		def self.sub_groups(groups,group_cmd,samples,output)
 			list = groups.map do |g|
 				if g.include? ','
 					g.split(',').map {|sample| sub_placeholders(group_cmd,sample,samples,output)}.join(',')
@@ -94,8 +107,7 @@ module Bio
 					sub_placeholders(group_cmd,g,samples,output)
 				end
 			end
-			command_line = command_line.gsub('<groups>',list.join("\s"))
-			command_line
+			list
 		end
 
 		def self.sub_placeholders(command_line,sample,samples,output)
