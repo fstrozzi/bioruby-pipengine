@@ -233,17 +233,17 @@ So for Cuffdiff, the presence of commas is critical to divide biological replica
 echo '<groups1>' | sed -e 's/,/ /g' | xargs ls >> gtf_list.txt
 ```
 
-This line generates the gtf_list.txt file with the list of the transcripts.gtf files of each sample, but getting rid of the commas. It's a workaround and it's not a super clean solution, but PipEngine wants to be a general tool not binded to specific corner cases and it always let the user define it's own custom command lines to manage particular stepts, as in this case.
+This line generates the input file for Cuffcompare with the list of the transcripts.gtf files for each sample, generated using the 'groups' definition in the pipeline YAML and the line passed through the **-g** parameter, but getting rid of the commas that separate sample names. It's a workaround and it's not a super clean solution, but PipEngine wants to be a general tool not binded to specific corner cases and it always lets the user define it's own custom command lines to manage particular steps, as in this case.
 
 
 What happens at run-time
 ========================
 
-When invoking pipengine, the tool will look for the pipeline YAML specified and for the sample YAML file. It will load the list of samples (names and paths of input data) and for each sample it will start loading the corresponding step information specified in the command line.
+When invoking PipEngine, the tool will look for the pipeline YAML specified and for the sample YAML file. It will load the list of samples (names and paths of input data) and for each sample it will load the information of the step specified in the command line (**-s** parameter).
 
 PipEngine will then combine the data from the two YAML, generating the specific command lines of the selected steps and substituing all the placeholders to generate the final command lines.
 
-A shell script will be finally generated, for each sample, that will contain all the instructions to run a specific step of the pipelines plus the meta data for the PBS scheduler.
+A shell script will be finally generated, for each sample, that will contain all the instructions to run a specific step of the pipeline plus the meta-data for the PBS scheduler.
 
 If not invoked with the **-d** option (dry-run) PipEngine will directly submit the jobs to the PBS scheduler using the "qsub" command.
 
@@ -252,11 +252,11 @@ Local output folder
 
 By using the '--local' option, PipEngine will generate a job script (for each sample) that will save all the output files or folders for a particular step in a local directory (e.g. /tmp).
 
-By default PipEngine, if not invoked with '--local', will generate output folders directly under the location defined by the ```<ouput>``` tag. The local solution can be useful when we don't want to save directly to the final location (e.g a slow network storage) or we don't want to keep all the intermediate files but just the final ones.
+By default PipEngine, if not invoked with '--local', will generate output folders directly under the location defined by the ```<ouput>``` tag in the Sample YAML. The local solution can be useful when we don't want to save directly to the final location (e.g a slow network storage) or we don't want to keep all the intermediate files but just the final ones.
 
-With this option enabled, PipEngine will also generate instructions in the job script to copy the final output folder from the local temporary directory to the final output folder (i.e. ```<output>```) and then to remove the local copy.
+With this option enabled, PipEngine will also generate instructions in the job script to copy, at the end of the job, the final output folder from the local temporary directory to the final output folder (i.e. ```<output>```) and then to remove the local copy.
 
-When '--local' is used a UUID is generated for each job and prepended to the job name and to the local output folder, to avoid possible name collisions and data overwrite if more jobs with the same name (i.e. mapping) are running at the same time.
+When '--local' is used a UUID is generated for each job and prepended to the job name and to the local output folder, to avoid possible name collisions and data overwrite if more jobs with the same name (i.e. mapping) are running at the same time, writing on the same temporary location.
 
 One job with multiple steps
 ---------------------------
@@ -273,7 +273,7 @@ A single job script, for each sample, will be generated with all the instruction
 
 If the pipeline is defined with steps that are dependent one from the other, in the scenario where more steps are run together PipEngine will check if for a given step the expected input is already available. If not, it will assume the input will be found in the current working directory, because the input has not yet been generated.
 
-This is because the output folders are by definition based on the job executed. So one step in one job, means one output folder with the step name, but more steps in one job means that all the outputs generated will be in the same job directory that by default it's named as the concatenation of all the steps executed.
+This is because the output folders are by definition based on the job executed. So one step in one job, means one output folder with the step name, but more steps in one job means that all the outputs generated will be in the same job directory that will be named by default as the concatenation of all the steps names.
 
 Since this can be a problem when a lot of steps are run together in the same job, a '--name' parameter it's available to rename the job (and thus the corresponding output folder).
 
@@ -281,4 +281,4 @@ Since this can be a problem when a lot of steps are run together in the same job
 Copyright
 =========
 
-2013 Francesco Strozzi
+(c)2013 Francesco Strozzi
