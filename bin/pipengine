@@ -4,11 +4,11 @@ $:<< File.expand_path(File.join(File.dirname(File.dirname __FILE__),"lib"))
 require 'bio-pipengine'
 
 options = Trollop::options do
-	banner = "\n\nLauncher for Complex Biological Pipelines . Copyright(C) 2012 Francesco Strozzi\n\n"   
-	opt :pipeline, "YAML file with pipeline and sample details", :short => "p", :type => :string, :default => "pipeline.yml"
+	banner "\n\nLauncher for Complex Biological Pipelines . Copyright(C) 2013 Francesco Strozzi\n\n"
+	opt :pipeline, "YAML file with pipeline and sample details", :short => "p", :type => :string, :default => "pipeline.yml", :required => true
 	opt :samples_file, "YAML file with samples name and directory paths", :short => "f", :type => :string, :default => "samples.yml"
 	opt :samples, "List of sample names to run the pipeline", :type => :strings, :short => "l"
-	opt :steps, "List of steps to be executed", :type => :strings, :short => "s"
+	opt :steps, "List of steps to be executed", :type => :strings, :short => "s", :required => true
   opt :dry,"Dry run. Just create the job script without sending it to the batch system", :short => "d"
 	opt :local, "Local output base folder (without sample name)", :type => :string
 	opt :create_samples, "Create samples.yml file from a Sample directory", :short => "c", :type => :string

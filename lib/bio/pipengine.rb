@@ -2,39 +2,48 @@ module Bio
 	module Pipengine
 
 		def self.run(options)
-			pipeline = YAML.load_file options[:pipeline]
+
+      pipeline = YAML.load_file options[:pipeline]
 			samples = YAML.load_file options[:samples_file]
-			samples_list = options[:samples] ? samples["samples"].select {|k,v| options[:samples].include? k} : samples["samples"] 
+			samples_list = options[:samples] ? samples["samples"].select {|k,v| options[:samples].include? k} : samples["samples"]
+
 			samples_list.each_key do |sample|
 				job_opts = {job_name:[], step:[], cpu:[]}
 				cmd = []
 				options[:steps].each do |step|
 					specs = pipeline["step"][step]
-					if specs.nil?
+
+          if specs.nil?
 						puts "No step #{step} found in #{options[:pipeline]}"
 						exit
 					end
-					if specs["groups"]
-						options[:groups] = options[:groups] ? options[:groups] : samples["samples"].keys
+
+          if specs["groups"]
+						options[:groups] ||= samples["samples"].keys
 						job_opts[:groups] = true
 					end
+
           if specs["run"].kind_of? Array
             	specs["run"].each {|run| cmd << sub_fields(run,pipeline,sample,samples,job_opts[:output],options[:groups],step) }
           else
             	cmd << sub_fields(specs["run"],pipeline,sample,samples,job_opts[:output],options[:groups],step)
           end
 					job_opts[:cpu] << (specs["cpu"] ||= 1)
-					if options[:local]
+
+          if options[:local]
 						job_opts[:output] = options[:local]
 					elsif options[:groups]
 						job_opts[:output] = samples["resources"]["output"]
 					else
 						job_opts[:output] = samples["resources"]["output"] + "/"+sample
 					end
-					job_opts[:step] << step
+
+          job_opts[:step] << step
 					job_opts[:local] = options[:local]
 					job_opts[:dry] = options[:dry]
-				end
+
+        end
+
 				if options[:name]
 					job_opts[:job_name] = generate_uuid+"-"+options[:name]
 					job_opts[:step] = options[:name]
@@ -77,7 +86,7 @@ module Bio
 			samples["resources"].each_key {|r| command_line.gsub!("<#{r}>",samples["resources"][r])}
 			command_line = command_line.gsub('<pipeline>',pipeline["pipeline"])	
       command_line = set_groups(command_line,pipeline,groups,samples,output,step) if groups
-			command_line = sub_placeholders(command_line,sample,samples,output) 
+			command_line = sub_placeholders(command_line,sample,samples)
 			command_line
 		end
 
@@ -85,34 +94,35 @@ module Bio
 			UUID.new.generate.split("-").first
 		end
 
-		def self.set_groups(command_line,pipeline,groups,samples,output,step)
+		def self.set_groups(command_line,pipeline,groups,samples,step)
 			group_cmd = pipeline["step"][step]["groups"]
 			if group_cmd.kind_of? Array
 				group_cmd.each_with_index do |g,index|
-					list = sub_groups(groups,g,samples,output)
+					list = sub_groups(groups,g,samples)
 					command_line = command_line.gsub("<groups#{index+1}>",list.join("\s"))
 				end
 			else
-				list = sub_groups(groups,group_cmd,samples,output)
-				command_line = command_line.gsub("<groups#{index+1}>",list.join("\s"))
+				list = sub_groups(groups,group_cmd,samples)
+				command_line = command_line.gsub("<groups>",list.join("\s"))
 			end
 			command_line
 		end
 
-		def self.sub_groups(groups,group_cmd,samples,output)
+		def self.sub_groups(groups,group_cmd,samples)
 			list = groups.map do |g|
 				if g.include? ','
-					g.split(',').map {|sample| sub_placeholders(group_cmd,sample,samples,output)}.join(',')
+					g.split(',').map {|sample| sub_placeholders(group_cmd,sample,samples)}.join(',')
 				else
-					sub_placeholders(group_cmd,g,samples,output)
+					sub_placeholders(group_cmd,g,samples)
 				end
 			end
 			list
 		end
 
-		def self.sub_placeholders(command_line,sample,samples,output)
+		def self.sub_placeholders(command_line,sample,samples)
 			check_sample sample,samples
 			sample_path = samples["samples"][sample]
+      sample = sample.to_s
 			command_line.scan(/<(\S+)\/sample>/).map {|e| e.first}.each do |input_folder|
       	if Dir.exists? samples["resources"]["output"]+"/"+sample+"/"+input_folder
       		command_line = command_line.gsub(/<#{input_folder}\/sample>/,samples["resources"]["output"]+"/"+sample+"/"+input_folder+"/"+sample)
