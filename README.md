@@ -207,7 +207,7 @@ In the example above, the step includes two command lines, one for cuffcompare a
 
 So the two command lines need two different outputs from the same set of samples, therefore two **groups** keywords are defined as well as two placeholders ```<groups1>``` and ```<groups2>```
 
-Once the step has been defined in the pipeline YAML, pipengine must be invoked using the **-g** parameter, to specify the samples that should be processed by this step:
+Once the step has been defined in the pipeline YAML, pipengine must be invoked using the **-g** parameter, to specify the samples that should be grouped together by this step:
 
 ```shell
 pipengine -p pipeline.yml -g SampleA,SampleB SampleC,SampleB
@@ -215,13 +215,25 @@ pipengine -p pipeline.yml -g SampleA,SampleB SampleC,SampleB
 
 Note that the use of commas is not casual, since the **-g** parameter takes the sample names and underneath it will combine the sample name, with the 'groups' keywords and then it will substitute back the command line by keeping the samples in the same order as provided with the **-g**.
 
-The above command line will be translated, for the **diffexp** step in the following:
+The above command line will be translated, for the **cuffdiff** command line in the following:
 
 ```shell
 /software/cuffdiff -p 12 -N -u -b /storage/genome.fa combined.gtf /storage/results/SampleA/cufflinks/transcripts.gtf,/storage/results/SampleB/cufflinks/transcripts.gtf /storage/results/SampleC/cufflinks/transcripts.gtf /storage/results/SampleD/cufflinks/transcripts.gtf
 ```
 
 and this will correspond to the way CuffDiff wants biological replicates for each condition to be described on the command line.
+
+**Note**
+
+Sample groups management is complex and it's a task that can't be easily generalized since every tool as it's own way to put and organize the inputs on the command line. This approach it's not the best but works quite well, even if there are some drawbacks. For instance, as stated above, the samples groups is processed and passed to command lines as it is taken from the **-g** parameter.
+
+So for Cuffdiff, the presence of commas is critical to divide biological replicates from different conditions, but for Cuffcompare the commas are not needed and will raise an error on the command line. That's the reason of the:
+
+```shell
+echo '<groups1>' | sed -e 's/,/ /g' | xargs ls >> gtf_list.txt
+```
+
+This line generates the gtf_list.txt file with the list of the transcripts.gtf files of each sample, but getting rid of the commas. It's a workaround and it's not a super clean solution, but PipEngine wants to be a general tool not binded to specific corner cases and it always let the user define it's own custom command lines to manage particular stepts, as in this case.
 
 
 What happens at run-time
