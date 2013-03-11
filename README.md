@@ -87,7 +87,7 @@ Resources definition
 
 PipEngine is entirely based on the placeholder and substitution logic. For example in the Pipeline YAML, each tool is declared under the resources and at run time PipEngine will search for the corresponding placeholder in the command lines.
 
-So, for instance, if I have declared a software **bwa** under resources, PipEngine will search for a **<bwa>** placeholder in all the command lines and will substitute it with the software complete path declared in resources.
+So, for instance, if I have declared a software **bwa** under resources, PipEngine will search for a ```<bwa>``` placeholder in all the command lines and will substitute it with the software complete path declared in resources.
 
 This makes command lines definition shorter and easier to read and avoid problems when moving from one software version to another (i.e. you just need to change the bwa definition once, and not 10 times in 5 different command lines)
 
@@ -128,7 +128,7 @@ In this YAML there is again a **resources** key, but this time the tags defined 
 
 For instance, if I am working with human RNA-seq samples, these data must be aligned on the human genome, so it makes sense that the **genome** tag must be defined here and not in the pipeline YAML, which must be as much generic as possible.
 
-Mainly the tags defined under the samples **resources** are dependent on the pipeline one wants to run. So if using BWA to perform reads alignemnt, an **index** tag must be defined here to set the BWA index prefix and it will be substituted in the pipelines command lines every time an **<index>** placeholder will be found.
+Mainly the tags defined under the samples **resources** are dependent on the pipeline one wants to run. So if using BWA to perform reads alignemnt, an **index** tag must be defined here to set the BWA index prefix and it will be substituted in the pipelines command lines every time an ```<index>``` placeholder will be found.
 
 Input and output conventions
 ----------------------------
@@ -149,14 +149,14 @@ That is, given a generic /storage/pipeline_results **<output>** folder the outpu
 
 This simple convention keep things clearer and well organized. The output file name can be decided during the pipeline creation, but it's a good habit to name it using the sample name.
 
-Regarding the input conventions, the **<sample>** placeholder will be substituted with the sample name while the **<sample_path>** will be changed with the location where initial sample data (i.e. raw sequencing reads) are stored.
+Regarding the input conventions, the **<sample>** placeholder will be substituted with the sample name while the ```<sample_path>``` will be changed with the location where initial sample data (i.e. raw sequencing reads) are stored.
 
 
 
 How steps are connected together
 --------------------------------
 
-One step is connected to another by simply requiring that its input is coming from the output of another step. This is just achived by a combination of <output> and <sample> placeholders in the pipeline command line definitions.
+One step is connected to another by simply requiring that its input is coming from the output of another step. This is just achived by a combination of ```<output>``` and ```<sample>``` placeholders in the pipeline command line definitions.
 
 For instance, if I have an RNA-seq pipeline that will first run TopHat to map the reads and then Cufflinks to assemble them, the Cufflinks step will be dependent from the TopHat output.
 
@@ -166,15 +166,15 @@ So in the Cufflinks step the input will be defined as:
 <tophat/sample>_tophat/accepted_hits.bam
 ```
 
-Given an <output> tag defined as /storage/results, this will be translated at run-time into:
+Given an ```<output>``` tag defined as /storage/results, this will be translated at run-time into:
 
 ```
 /storage/results/SampleA/tophat/SampleA_tophat/accepted_hits.bam
 ```
 
-for SampleA. Basically the <tophat/sample> placeholder is a shortcut for <output>/<sample>/{step name, Tophat in this case}/<sample> .
+for SampleA. Basically the ```<tophat/sample>``` placeholder is a shortcut for ```<output>/<sample>/{step name, Tophat in this case}/<sample>``` .
 
-More complex dependence can be defined by combinations of <output> and <sample> placeholders, without having to worry about the actual sample name and the complete paths of input and output paths.
+More complex dependence can be defined by combinations of ```<output>``` and ```<sample>``` placeholders, without having to worry about the actual sample name and the complete paths of input and output paths.
 
 
 Sample groups and complex steps
@@ -198,11 +198,11 @@ A typical example is running a differential expression step for example with Cuf
 
 In this case we need to combine the outputs of all the samples from the mapping step and pass that information to cuffcompare and cuffdiff.
 
-This is achived in two ways. First, the step definition must include a **groups** key, that simply defines what, for each sample, will be substituted where the **<groups>** placeholder is found.
+This is achived in two ways. First, the step definition must include a **groups** key, that simply defines what, for each sample, will be substituted where the ```<groups>``` placeholder is found.
 
 In the example above, the step includes two command lines, one for cuffcompare and the other for cuffdiff. Cuffcompare requires the transcripts.gtf for each sample, while Cuffdiff requires the BAM file for each sample, plus the output of Cuffcompare.
 
-So the two command lines need two different outputs from the same set of samples, therefore two **groups** keywords are defined as well as two placeholders '<groups1>' and '<groups2'>
+So the two command lines need two different outputs from the same set of samples, therefore two **groups** keywords are defined as well as two placeholders ```<groups1>``` and ```<groups2>```
 
 Once the step has been defined in the pipeline YAML, pipengine must be invoked using the **-g** parameter, to specify the samples that should be processed by this step:
 
@@ -237,9 +237,9 @@ Local output folder
 
 By using the '--local' option, PipEngine will generate a job script (for each sample) that will save all the output files or folders for a particular step in a local directory (e.g. /tmp).
 
-By default PipEngine, if not invoked with '--local', will generate output folders directly under the location defined by the '<ouput>' tag. The local solution can be useful when we don't want to save directly to the final location (e.g a slow network storage) or we don't want to keep all the intermediate files but just the final ones.
+By default PipEngine, if not invoked with '--local', will generate output folders directly under the location defined by the ```<ouput>``` tag. The local solution can be useful when we don't want to save directly to the final location (e.g a slow network storage) or we don't want to keep all the intermediate files but just the final ones.
 
-With this option enabled, PipEngine will also generate instructions in the job script to copy the final output folder from the local temporary directory to the final output folder (i.e. <output>) and then to remove the local copy.
+With this option enabled, PipEngine will also generate instructions in the job script to copy the final output folder from the local temporary directory to the final output folder (i.e. ```<output>```) and then to remove the local copy.
 
 When '--local' is used a UUID is generated for each job and prepended to the job name and to the local output folder, to avoid possible name collisions and data overwrite if more jobs with the same name (i.e. mapping) are running at the same time.
 
@@ -261,7 +261,6 @@ If the pipeline is defined with steps that are dependent one from the other, in 
 This is because the output folders are by definition based on the job executed. So one step in one job, means one output folder with the step name, but more steps in one job means that all the outputs generated will be in the same job directory that by default it's named as the concatenation of all the steps executed.
 
 Since this can be a problem when a lot of steps are run together in the same job, a '--name' parameter it's available to rename the job (and thus the corresponding output folder).
-
 
 
 Copyright
