@@ -10,8 +10,8 @@ options = Trollop::options do
 	opt :samples, "List of sample names to run the pipeline", :type => :strings, :short => "l"
 	opt :steps, "List of steps to be executed", :type => :strings, :short => "s", :required => true
   opt :dry,"Dry run. Just create the job script without sending it to the batch system", :short => "d"
-	opt :local, "Local output base folder (without sample name)", :type => :string
-	opt :create_samples, "Create samples.yml file from a Sample directory", :short => "c", :type => :string
+	opt :local, "Local output root folder", :type => :string
+	opt :create_samples, "Create samples.yml file from a Sample directory (only for CASAVA projects)", :short => "c", :type => :string
 	opt :groups, "Group of samples to be processed by a given step", :short => "g", :type => :strings
 	opt :name, "Analysis name", :short => "n", :type => :string
 end

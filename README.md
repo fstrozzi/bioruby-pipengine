@@ -15,8 +15,8 @@ Usage
         --samples, -l <s+>:   List of sample names to run the pipeline
           --steps, -s <s+>:   List of steps to be executed
                  --dry, -d:   Dry run. Just create the job script without sending it to the batch system
-           --local, -o <s>:   Local output base folder (without sample name)
-  --create-samples, -c <s>:   Create samples.yml file from a Sample directory
+           --local, -o <s>:   Local output root folder
+  --create-samples, -c <s>:   Create samples.yml file from a Sample directory (only for CASAVA projects)
          --groups, -g <s+>:   Group of samples to be processed by a given step
             --name, -n <s>:   Analysis name
                 --help, -h:   Show this message
@@ -128,16 +128,16 @@ In this YAML there is again a **resources** key, but this time the tags defined 
 
 For instance, if I am working with human RNA-seq samples, these data must be aligned on the human genome, so it makes sense that the **genome** tag must be defined here and not in the pipeline YAML, which must be as much generic as possible.
 
-Mainly the tags defined under the samples **resources** are dependent on the pipeline one wants to run. So if using BWA to perform reads alignemnt, an **index** tag must be defined here to set the BWA index prefix and it will be substituted in the pipelines command lines every time an ```<index>``` placeholder will be found.
+Mainly the tags defined under the samples **resources** are dependent on the pipeline one wants to run. So if using BWA to perform reads alignemnt, an **index** tag must be defined here to set the BWA index prefix and it will be substituted in the pipelines command lines every time an ```<index>``` placeholder will be found in the pipeline YAML.
 
 Input and output conventions
 ----------------------------
 
-The **<output>** placeholder is a generic one to define the root location for the pipeline outputs.
+The ```<output>``` placeholder is a generic one to define the root location for the pipeline outputs.
 
 By convention, each sample output is saved under a folder with the sample name and each step is saved in a sub-folder with the step name.
 
-That is, given a generic /storage/pipeline_results **<output>** folder the outputs of the **mapping** step will be organized in this way:
+That is, given a generic /storage/pipeline_results ```<output>``` folder the outputs of the **mapping** step will be organized in this way:
 
 ```shell
 /storage/pipeline_results
@@ -149,7 +149,7 @@ That is, given a generic /storage/pipeline_results **<output>** folder the outpu
 
 This simple convention keep things clearer and well organized. The output file name can be decided during the pipeline creation, but it's a good habit to name it using the sample name.
 
-Regarding the input conventions, the **<sample>** placeholder will be substituted with the sample name while the ```<sample_path>``` will be changed with the location where initial sample data (i.e. raw sequencing reads) are stored.
+Regarding the input conventions, the ```<sample>``` placeholder will be substituted with the sample name while the ```<sample_path>``` will be changed with the location where initial sample data (i.e. raw sequencing reads) are stored.
 
 
 
