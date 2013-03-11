@@ -87,7 +87,7 @@ Resources definition
 
 PipEngine is entirely based on the placeholder and substitution logic. For example in the Pipeline YAML, each tool is declared under the resources and at run time PipEngine will search for the corresponding placeholder in the command lines.
 
-So, for instance, if I have declared a software '''bwa''' under resources, PipEngine will search for a '''<bwa>''' placeholder in all the command lines and will substitute it with the software complete path declared in resources.
+So, for instance, if I have declared a software **bwa** under resources, PipEngine will search for a **<bwa>** placeholder in all the command lines and will substitute it with the software complete path declared in resources.
 
 This makes command lines definition shorter and easier to read and avoid problems when moving from one software version to another (i.e. you just need to change the bwa definition once, and not 10 times in 5 different command lines)
 
@@ -99,11 +99,11 @@ Step definition
 The step must be defined using standard keys:
 
 * the first key must be the step name
-* under the step name, a '''run''' key must be defined to hold the actual command line that will be executed
-* a '''cpu''' key must be defined if the command line uses more than 1 CPU at runtime
-* a '''group''' key must be defined if the command line takes as input more than one sample (more details later)
+* under the step name, a **run** key must be defined to hold the actual command line that will be executed
+* a **cpu** key must be defined if the command line uses more than 1 CPU at runtime
+* a **group** key must be defined if the command line takes as input more than one sample (more details later)
 
-A note on the '''run''' key. If a single step need more than a command line to execute the required actions, these multiple command lines must be defined as an array in YAML (see the mapping step in the above example).
+A note on the **run** key. If a single step need more than a command line to execute the required actions, these multiple command lines must be defined as an array in YAML (see the mapping step in the above example).
 
 
 The Sample YAML
@@ -124,24 +124,23 @@ samples:
   sampleD: /ngs_reads/sampleD
 ```
 
-In this YAML there is again a '''resources''' key, but this time the tags defined here are dependent on the samples described in the YAML.
+In this YAML there is again a **resources** key, but this time the tags defined here are dependent on the samples described in the YAML.
 
-For instance, if I am working with human RNA-seq samples, these data must be aligned on the human genome, so it makes sense that the '''genome''' tag must be defined here and not in the pipeline YAML, which must be as much generic as possible.
+For instance, if I am working with human RNA-seq samples, these data must be aligned on the human genome, so it makes sense that the **genome** tag must be defined here and not in the pipeline YAML, which must be as much generic as possible.
 
-Mainly the tags defined under the samples '''resources''' are dependent on the pipeline one wants to run. So if using BWA to perform reads alignemnt, an '''index''' tag must be defined here to set the BWA index prefix and it will be substituted in the pipelines command lines every time an '''<index>''' placeholder will be found.
+Mainly the tags defined under the samples **resources** are dependent on the pipeline one wants to run. So if using BWA to perform reads alignemnt, an **index** tag must be defined here to set the BWA index prefix and it will be substituted in the pipelines command lines every time an **<index>** placeholder will be found.
 
 Input and output conventions
 ----------------------------
 
-The '''<output>''' placeholder is a generic one to define the root location for the pipeline outputs.
+The **<output>** placeholder is a generic one to define the root location for the pipeline outputs.
 
 By convention, each sample output is saved under a folder with the sample name and each step is saved in a sub-folder with the step name.
 
-That is, given a generic /storage/pipeline_results '''<output>''' folder the outputs of the '''mapping''' step will be organized in this way:
+That is, given a generic /storage/pipeline_results **<output>** folder the outputs of the **mapping** step will be organized in this way:
 
 ```shell
 /storage/pipeline_results
-                         |
                          |-SampleA/mapping/SampleA.bam
                          |-SampleB/mapping/SampleB.bam
                          |-SampleC/mapping/SampleC.bam
@@ -150,7 +149,7 @@ That is, given a generic /storage/pipeline_results '''<output>''' folder the out
 
 This simple convention keep things clearer and well organized. The output file name can be decided during the pipeline creation, but it's a good habit to name it using the sample name.
 
-Regarding the input conventions, the '''<sample>''' placeholder will be substituted with the sample name while the '''<sample_path>''' will be changed with the location where initial sample data (i.e. raw sequencing reads) are stored.
+Regarding the input conventions, the **<sample>** placeholder will be substituted with the sample name while the **<sample_path>** will be changed with the location where initial sample data (i.e. raw sequencing reads) are stored.
 
 
 
@@ -199,21 +198,21 @@ A typical example is running a differential expression step for example with Cuf
 
 In this case we need to combine the outputs of all the samples from the mapping step and pass that information to cuffcompare and cuffdiff.
 
-This is achived in two ways. First, the step definition must include a '''groups''' key, that simply defines what, for each sample, will be substituted where the '''<groups>''' placeholder is found.
+This is achived in two ways. First, the step definition must include a **groups** key, that simply defines what, for each sample, will be substituted where the **<groups>** placeholder is found.
 
 In the example above, the step includes two command lines, one for cuffcompare and the other for cuffdiff. Cuffcompare requires the transcripts.gtf for each sample, while Cuffdiff requires the BAM file for each sample, plus the output of Cuffcompare.
 
-So the two command lines need two different outputs from the same set of samples, therefore two '''groups''' keywords are defined as well as two placeholders '<groups1>' and '<groups2'>
+So the two command lines need two different outputs from the same set of samples, therefore two **groups** keywords are defined as well as two placeholders '<groups1>' and '<groups2'>
 
-Once the step has been defined in the pipeline YAML, pipengine must be invoked using the '''-g''' parameter, to specify the samples that should be processed by this step:
+Once the step has been defined in the pipeline YAML, pipengine must be invoked using the **-g** parameter, to specify the samples that should be processed by this step:
 
 ```shell
 pipengine -p pipeline.yml -g SampleA,SampleB SampleC,SampleB
 ```
 
-Note that the use of commas is not casual, since the '''-g''' parameter takes the sample names and underneath it will combine the sample name, with the 'groups' keywords and then it will substitute back the command line by keeping the samples in the same order as provided with the '''-g'''.
+Note that the use of commas is not casual, since the **-g** parameter takes the sample names and underneath it will combine the sample name, with the 'groups' keywords and then it will substitute back the command line by keeping the samples in the same order as provided with the **-g**.
 
-The above command line will be translated, for the '''diffexp''' step in the following:
+The above command line will be translated, for the **diffexp** step in the following:
 
 ```shell
 /software/cuffdiff -p 12 -N -u -b /storage/genome.fa combined.gtf /storage/results/SampleA/cufflinks/transcripts.gtf,/storage/results/SampleB/cufflinks/transcripts.gtf /storage/results/SampleC/cufflinks/transcripts.gtf /storage/results/SampleD/cufflinks/transcripts.gtf
@@ -231,7 +230,7 @@ PipEngine will then combine the data from the two YAML, generating the specific 
 
 A shell script will be finally generated, for each sample, that will contain all the instructions to run a specific step of the pipelines plus the meta data for the PBS scheduler.
 
-If not invoked with the '''-d''' option (dry-run) PipEngine will directly submit the jobs to the PBS scheduler using the "qsub" command.
+If not invoked with the **-d** option (dry-run) PipEngine will directly submit the jobs to the PBS scheduler using the "qsub" command.
 
 Local output folder
 -------------------
@@ -255,7 +254,7 @@ From the command line it's just:
 pipengine -p pipeline.yml -s mapping mark_dup realign_target
 ```
 
-A single job script, for each sample, will be generated with all the instructions for this steps. If more than one step declares a '''cpu''' key, the highest cpu value will be assigned for the whole job.
+A single job script, for each sample, will be generated with all the instructions for this steps. If more than one step declares a **cpu** key, the highest cpu value will be assigned for the whole job.
 
 If the pipeline is defined with steps that are dependent one from the other, in the scenario where more steps are run together PipEngine will check if for a given step the expected input is already available. If not, it will assume the input will be found in the current working directory, because the input has not yet been generated.
 
