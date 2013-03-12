@@ -303,7 +303,7 @@ Dry Run
 
 The **-d** parameter lets you create the runnable shell scripts without submitting them to PBS. Use it often to check that the pipeline that will be executed is correct and it is doing what you thought.
 
-Use it also to learn how the placeholders works, especially the dependency placeholders (i.e. <mapping/sample>) and to cross-check that all the placeholders in the pipeline command lines were substituted correctly before submitting the jobs.
+Use it also to learn how the placeholders works, especially the dependency placeholders (e.g. ```<mapping/sample>```) and to cross-check that all the placeholders in the pipeline command lines were substituted correctly before submitting the jobs.
 
 Local output folder
 -------------------
@@ -314,7 +314,7 @@ By default PipEngine will generate output folders directly under the location de
 
 With this option enabled, PipEngine will also generate instructions in the job script to copy, at the end of the job, the final output folder from the local temporary directory to the final output folder (i.e. ```<output>```) and then to remove the local copy.
 
-When '--local' is used a UUID is generated for each job and prepended to the job name and to the local output folder, to avoid possible name collisions and data overwrite if more jobs with the same name (i.e. mapping) are running at the same time, writing on the same temporary location.
+When '--local' is used a UUID is generated for each job and prepended to the job name and to the local output folder, to avoid possible name collisions and data overwrite if more jobs with the same name (e.g. mapping) are running at the same time, writing on the same temporary location.
 
 One job with multiple steps
 ---------------------------
@@ -327,9 +327,9 @@ From the command line it's just:
 pipengine -p pipeline.yml -s mapping mark_dup realign_target
 ```
 
-A single job script, for each sample, will be generated with all the instructions for this steps. If more than one step declares a **cpu** key, the highest cpu value will be assigned for the whole job.
+A single job script, for each sample, will be generated with all the instructions for these steps. If more than one step declares a **cpu** key, the highest cpu value will be assigned for the whole job.
 
-If the pipeline is defined with steps that are dependent one from the other, in the scenario where more steps are run together PipEngine will check if for a given step the expected input is already available. If not, it will assume the input will be found in the current working directory, because the input has not yet been generated.
+If the pipeline is defined with steps that are dependent one from the other, in the scenario where more steps are run together PipEngine will check if for a given step the expected input is already available. If not, it will assume the input will be found in the current working directory, because the input itself has not yet been generated.
 
 This is because the output folders are by definition based on the job executed. So one step in one job, means one output folder with the step name, but more steps in one job means that all the outputs generated will be in the same job directory that will be named by default as the concatenation of all the steps names.
 
