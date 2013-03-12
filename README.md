@@ -12,11 +12,17 @@ PipEngine is best suited for NGS pipelines, but it can be used for any kind of p
 ============
 
 [Usage](https://github.com/bioinformatics-ptp/bioruby-pipengine#-usage-)
+
 [The Pipeline YAML](https://github.com/bioinformatics-ptp/bioruby-pipengine#-the-pipeline-yaml-)
+
 [The Samples YAML](https://github.com/bioinformatics-ptp/bioruby-pipengine#-the-sample-yaml-)
+
 [Input and output conventions](https://github.com/bioinformatics-ptp/bioruby-pipengine#-input-and-output-conventions-)
+
 [Sample groups and complex steps](https://github.com/bioinformatics-ptp/bioruby-pipengine#-sample-groups-and-complex-steps-)
+
 [What happens at run-time](https://github.com/bioinformatics-ptp/bioruby-pipengine#-what-happens-at-run-time-)
+
 [Examples](https://github.com/bioinformatics-ptp/bioruby-pipengine#-examples-)
 
 
