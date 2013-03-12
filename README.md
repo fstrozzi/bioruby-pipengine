@@ -165,7 +165,7 @@ Mainly the tags defined under the samples **resources** are dependent on the pip
 
 The input file in the pipeline YAML are defined by the ```<sample>``` placeholder that will be substituted with the sample name while the ```<sample_path>``` will be changed with the location where initial sample data (i.e. raw sequencing reads) are stored. Both this information are coming from the sample YAML file.
 
-The ```<output>``` placeholder is a generic one to define the root location for the pipeline outputs.
+The ```<output>``` placeholder is a generic one to define the root location for the pipeline outputs. This parameter is also defined in the samples YAML.
 
 By convention, each sample output is saved under a folder with the sample name and each step is saved in a sub-folder with the step name.
 
@@ -185,7 +185,8 @@ When new steps of the same pipeline are run output folders are updated according
 ```shell
 /storage/pipeline_results/SampleA/mapping
                          /SampleA/mark_dup
-                         /SampleB/mapping
+
+/storage/pipeline_results/SampleB/mapping
                          /SampleB/mark_dup
                   .....
 ```
