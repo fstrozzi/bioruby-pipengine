@@ -11,7 +11,13 @@ PipEngine is best suited for NGS pipelines, but it can be used for any kind of p
 :: Topics ::
 ============
 
-
+[Usage](https://github.com/bioinformatics-ptp/bioruby-pipengine#-usage-)
+[The Pipeline YAML](https://github.com/bioinformatics-ptp/bioruby-pipengine#-the-pipeline-yaml-)
+[The Samples YAML](https://github.com/bioinformatics-ptp/bioruby-pipengine#-the-sample-yaml-)
+[Input and output conventions](https://github.com/bioinformatics-ptp/bioruby-pipengine#-input-and-output-conventions-)
+[Sample groups and complex steps](https://github.com/bioinformatics-ptp/bioruby-pipengine#-sample-groups-and-complex-steps-)
+[What happens at run-time](https://github.com/bioinformatics-ptp/bioruby-pipengine#-what-happens-at-run-time-)
+[Examples](https://github.com/bioinformatics-ptp/bioruby-pipengine#-examples-)
 
 
 :: Usage ::
@@ -124,7 +130,7 @@ The step must be defined using standard keys:
 A note on the **run** key. If a single step need more than a command line to execute the required actions, these multiple command lines must be defined as an array in YAML (see the mapping step in the above example).
 
 
-:: The Sample YAML ::
+:: The Samples YAML ::
 =====================
 
 The samples YAML is much simpler then the pipeline YAML:
@@ -325,7 +331,8 @@ Since this can be a problem when a lot of steps are run together in the same job
 :: Examples ::
 ==============
 
-Example 1: Simple pipeline YAML with multiple command lines
+Example 1: One step and multiple command lines
+----------------------------------------------
 
 This is an example on how to prepare the inputs for BWA and run it along with Samtools:
 
@@ -388,7 +395,7 @@ In this case also, the **run** key defines three different command lines, that a
 As a rule of thumb you should put more command line into an array under the same step if these are all logically correlated and required to manipulate intermidiate files. Otherwise if command lines executes conceptually different actions they should go into different steps.
 
 Example 2: Multiple steps in one job
--------------------------
+------------------------------------
 
 Now I want to execute more steps in a single job for each sample. The pipeline YAML is defined in this way:
 
