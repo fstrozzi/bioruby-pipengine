@@ -371,6 +371,9 @@ ls /ngs_reads/sampleA/*_R2_*.gz | xargs zcat | pigz -p 10 >> R2.fastq.gz
 /storage/software/bwa-0.6.2/bwa sampe -P /storage/genomes/bwa_index/genome <(/storage/software/bwa-0.6.2/bwa aln -t 4 -q 20 /storage/genomes/bwa_index/genome R1.fastq.gz) <(/storage/software/bwa-0.6.2/bwa aln -t 4 -q 20 /storage/genomes/bwa_index/genome R2.fastq.gz) R1.fastq.gz R2.fastq.gz | /storage/software/samtools view -Sb - > sampleA.bam
 rm -f R1.fastq.gz R2.fastq.gz
 ```
+As you can see the command line described in the pipeline YAML are translated into normal Unix command lines, therefore every solution that works on a standard Unix shell (pipes, bash substitutions) is perfectly acceptable.
+
+In this case also, the **run** key defines three different command lines, that are described using YAML array (a line prepended with a -). This command lines are all part of the same step, since the first two are required to prepare the input for the third command line (BWA), using standard bash commands.
 
 Copyright
 =========
