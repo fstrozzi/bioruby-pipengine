@@ -3,17 +3,29 @@ PipEngine
 
 A simple launcher for complex biological pipelines.
 
-The idea under PipEngine is to create a simple solution to define reusable pipelines that can be applied to different input samples. PipEngine is best suited for NGS pipelines, but it can be used for any kind of pipeline that can be runned on a job scheduling system.
+PipEngine will generate runnable shell scripts, already configured for the PBS/Torque job scheduler, for each sample in the pipeline. It allows to run a complete pipeline or just a single step or a few steps.
+
+PipEngine is best suited for NGS pipelines, but it can be used for any kind of pipeline that can be runned on a job scheduling system.
 
 
 Usage
 =====
 
+**Command line**
+```shell
+pipenengine -p pipeline.yml -f samples.yml -s mapping --local
+```
+
+**Mandatory parameters**
 ```shell
         --pipeline, -p <s>:   YAML file with pipeline and sample details (default: pipeline.yml)
+                  --steps, -s <s+>:   List of steps to be execute
     --samples-file, -f <s>:   YAML file with samples name and directory paths (default: samples.yml)
+
+```
+**Optional parameters**
+```shell
         --samples, -l <s+>:   List of sample names to run the pipeline
-          --steps, -s <s+>:   List of steps to be executed
                  --dry, -d:   Dry run. Just create the job script without sending it to the batch system
            --local, -o <s>:   Local output root folder
   --create-samples, -c <s>:   Create samples.yml file from a Sample directory (only for CASAVA projects)
@@ -26,13 +38,13 @@ PipEngine accepts two input files:
 * A YAML file describing the pipeline steps
 * A YAML file describing samples names, samples location and other samples-specific information
 
-PipEngine will generate a runnable shell script, already configured for the PBS job scheduler, for each sample in the pipeline. It allows to run a complete pipeline or just a single step or a few steps.
-
 
 The Pipeline YAML
 =================
 
-The basic structure of a pipeline YAML file is like the following:
+The basic structure of a pipeline YAML is divided into three parts: 1) pipeline name, 2) resources, 3) steps.
+
+An example YAML file is like the following:
 
 ```yaml
 
@@ -48,7 +60,7 @@ resources:
   bam: /software/bam
   pigz: /software/pigz
 
-step:
+steps:
   quality:
     run: <fastqc> --casava <sample_path>/*.gz -o <output> --noextract -nt 8
     threads: 8
@@ -133,6 +145,8 @@ Mainly the tags defined under the samples **resources** are dependent on the pip
 Input and output conventions
 ============================
 
+The input file in the pipeline YAML are defined by the ```<sample>``` placeholder that will be substituted with the sample name while the ```<sample_path>``` will be changed with the location where initial sample data (i.e. raw sequencing reads) are stored. Both this information are coming from the sample YAML file.
+
 The ```<output>``` placeholder is a generic one to define the root location for the pipeline outputs.
 
 By convention, each sample output is saved under a folder with the sample name and each step is saved in a sub-folder with the step name.
@@ -140,17 +154,13 @@ By convention, each sample output is saved under a folder with the sample name a
 That is, given a generic /storage/pipeline_results ```<output>``` folder, the outputs of the **mapping** step will be organized in this way:
 
 ```shell
-/storage/pipeline_results
-                         |-SampleA/mapping/SampleA.bam
-                         |-SampleB/mapping/SampleB.bam
-                         |-SampleC/mapping/SampleC.bam
-                         |-SampleD/mapping/SampleD.bam
+/storage/pipeline_results/SampleA/mapping/SampleA.bam
+                         /SampleB/mapping/SampleB.bam
+                         /SampleC/mapping/SampleC.bam
+                         /SampleD/mapping/SampleD.bam
 ```
 
 This simple convention keeps things clearer and well organized. The output file name can be decided during the pipeline creation, but it's a good habit to name it using the sample name.
-
-Regarding the input conventions, in the pipeline YAML the ```<sample>``` placeholder will be substituted with the sample name while the ```<sample_path>``` will be changed with the location where initial sample data (i.e. raw sequencing reads) are stored. Both this information are coming from the sample YAML file.
-
 
 
 
