@@ -13,7 +13,7 @@ Usage
 
 **Command line**
 ```shell
-pipenengine -p pipeline.yml -f samples.yml -s mapping --local
+pipenengine -p pipeline.yml -f samples.yml -s mapping --local /tmp
 ```
 
 **Mandatory parameters**
@@ -162,6 +162,15 @@ That is, given a generic /storage/pipeline_results ```<output>``` folder, the ou
 
 This simple convention keeps things clearer and well organized. The output file name can be decided during the pipeline creation, but it's a good habit to name it using the sample name.
 
+When new steps of the same pipeline are run output folders are updated accordingly, so for example if after the **mapping** step a **mark_dup** step is run, the output folder will look like this:
+
+```shell
+/storage/pipeline_results/SampleA/mapping
+                         /SampleA/mark_dup
+                         /SampleB/mapping
+                         /SampleB/mark_dup
+                  .....
+```
 
 
 How steps are connected together
@@ -169,21 +178,34 @@ How steps are connected together
 
 One step is connected to another by simply requiring that its input is coming from the output of another step. This is just achived by a combination of ```<output>``` and ```<sample>``` placeholders in the pipeline command line definitions.
 
-For instance, if I have an RNA-seq pipeline that will first run TopHat to map the reads and then Cufflinks to assemble them, the Cufflinks step will be dependent from the TopHat output.
+For instance, if I have a resequencing pipeline that will first run BWA to map the reads and then a mark duplicate step, the mark_dup step will be dependent from the BWA output.
 
-So in the Cufflinks step the command line input (defined under the **run** key in the pipeline YAML) will be written as:
+```yaml
+  mapping:
+    run:
+     - ls <sample_path>/*_R1_*.gz | xargs zcat | <pigz> -p 10 >> R1.fastq.gz
+     - ls <sample_path>/*_R2_*.gz | xargs zcat | <pigz> -p 10 >> R2.fastq.gz
+     - <bwa> sampe -P <index> <(<bwa> aln -t 4 -q 20 <index> R1.fastq.gz) <(<bwa> aln -t 4 -q 20 <index> R2.fastq.gz) R1.fastq.gz R2.fastq.gz | <samtools> view -Su - | java -Xmx4g -jar /storage/software/picard-tools-1.77/AddOrReplaceReadGroups.jar I=/dev/stdin O=<sample>.sorted.bam SO=coordinate LB=<pipeline> PL=illumina PU=PU SM=<sample> TMP_DIR=/data/tmp CREATE_INDEX=true MAX_RECORDS_IN_RAM=1000000
+     - rm -f R1.fastq.gz R2.fastq.gz
+    cpu: 11
+
+  mark_dup:
+    run: java -Xmx4g -jar <mark_dup> VERBOSITY=INFO MAX_RECORDS_IN_RAM=500000 VALIDATION_STRINGENCY=SILENT INPUT=<mapping/sample>.sorted.bam OUTPUT=<sample>.md.sort.bam METRICS_FILE=<sample>.metrics REMOVE_DUPLICATES=false
+```
+
+So in the **mark_dup** step the input placeholder (defined under the **run** key in the pipeline YAML) will be written as:
 
 ```
-<tophat/sample>_tophat/accepted_hits.bam
+<mapping/sample>.bam
 ```
 
-Given an ```<output>``` tag defined as /storage/results, this will be translated at run-time into:
+If the ```<output>``` tag is defined for instance as "/storage/results", this will be translated at run-time into:
 
 ```
-/storage/results/SampleA/tophat/SampleA_tophat/accepted_hits.bam
+/storage/results/SampleA/mapping/SampleA.bam
 ```
 
-for SampleA. Basically the ```<tophat/sample>``` placeholder is a shortcut for ```<output>/<sample>/{step name, Tophat in this case}/<sample>``` .
+for SampleA outputs. Basically the ```<mapping/sample>``` placeholder is a shortcut for ```<output>/<sample>/{step name, mapping in this case}/<sample>```
 
 More complex dependence can be defined by combinations of ```<output>``` and ```<sample>``` placeholders, without having to worry about the actual sample name and the complete paths of input and output paths.
 
@@ -262,7 +284,7 @@ Local output folder
 
 By using the '--local' option, PipEngine will generate a job script (for each sample) that will save all the output files or folders for a particular step in a local directory (e.g. /tmp).
 
-By default PipEngine, if not invoked with '--local', will generate output folders directly under the location defined by the ```<ouput>``` tag in the Sample YAML. The local solution can be useful when we don't want to save directly to the final location (e.g a slow network storage) or we don't want to keep all the intermediate files but just the final ones.
+By default PipEngine will generate output folders directly under the location defined by the ```<ouput>``` tag in the Sample YAML. The local solution instead can be useful when we don't want to save directly to the final location (e.g a slow network storage) or we don't want to keep all the intermediate files but just the final ones.
 
 With this option enabled, PipEngine will also generate instructions in the job script to copy, at the end of the job, the final output folder from the local temporary directory to the final output folder (i.e. ```<output>```) and then to remove the local copy.
 
