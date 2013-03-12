@@ -355,7 +355,9 @@ samples:
 
 Running PipEngine with the following command line:
 
-```pipengine -p pipeline.yml -f samples.yml -s mapping```
+```
+pipengine -p pipeline.yml -f samples.yml -s mapping
+```
 
 will generate a runnable shell script for each sample:
 
@@ -368,12 +370,78 @@ mkdir -p /storage/results/sampleA/mapping
 cd /storage/results/sampleA/mapping
 ls /ngs_reads/sampleA/*_R1_*.gz | xargs zcat | pigz -p 10 >> R1.fastq.gz
 ls /ngs_reads/sampleA/*_R2_*.gz | xargs zcat | pigz -p 10 >> R2.fastq.gz
-/storage/software/bwa-0.6.2/bwa sampe -P /storage/genomes/bwa_index/genome <(/storage/software/bwa-0.6.2/bwa aln -t 4 -q 20 /storage/genomes/bwa_index/genome R1.fastq.gz) <(/storage/software/bwa-0.6.2/bwa aln -t 4 -q 20 /storage/genomes/bwa_index/genome R2.fastq.gz) R1.fastq.gz R2.fastq.gz | /storage/software/samtools view -Sb - > sampleA.bam
+/software/bwa-0.6.2/bwa sampe -P /genomes/bwa_index/genome <(/software/bwa-0.6.2/bwa aln -t 4 -q 20 /genomes/bwa_index/genome R1.fastq.gz) <(/software/bwa-0.6.2/bwa aln -t 4 -q 20 /genomes/bwa_index/genome R2.fastq.gz) R1.fastq.gz R2.fastq.gz | /software/samtools view -Sb - > sampleA.bam
 rm -f R1.fastq.gz R2.fastq.gz
 ```
 As you can see the command line described in the pipeline YAML are translated into normal Unix command lines, therefore every solution that works on a standard Unix shell (pipes, bash substitutions) is perfectly acceptable.
 
 In this case also, the **run** key defines three different command lines, that are described using YAML array (a line prepended with a -). This command lines are all part of the same step, since the first two are required to prepare the input for the third command line (BWA), using standard bash commands.
+
+As a rule of thumb you should put more command line into an array under the same step if these are all logically correlated and required to manipulate intermidiate files. Otherwise if command lines executes conceptually different actions they should go into different steps.
+
+Multiple steps in one job
+-------------------------
+
+Now I want to execute more steps in a single job for each sample. The pipeline YAML is defined in this way:
+
+```yaml
+
+pipeline: resequencing
+
+resources:
+  bwa: /software/bwa-0.6.2/bwa
+  samtools: /software/samtools
+  mark_dup: /software/picard-tools-1.77/MarkDuplicates.jar
+  gatk: /software/GenomeAnalysisTK/GenomeAnalysisTK.jar
+
+steps:
+  mapping:
+    run:
+     - ls <sample_path>/*_R1_*.gz | xargs zcat | pigz -p 10 >> R1.fastq.gz
+     - ls <sample_path>/*_R2_*.gz | xargs zcat | pigz -p 10 >> R2.fastq.gz
+     - <bwa> sampe -P <index> <(<bwa> aln -t 4 -q 20 <index> R1.fastq.gz) <(<bwa> aln -t 4 -q 20 <index> R2.fastq.gz) R1.fastq.gz R2.fastq.gz | <samtools> view -Su - | java -Xmx4g -jar /storage/software/picard-tools-1.77/AddOrReplaceReadGroups.jar I=/dev/stdin O=<sample>.sorted.bam SO=coordinate LB=<pipeline> PL=illumina PU=PU SM=<sample> TMP_DIR=/data/tmp CREATE_INDEX=true MAX_RECORDS_IN_RAM=1000000
+     - rm -f R1.fastq.gz R2.fastq.gz
+    cpu: 11
+
+  mark_dup:
+    run: java -Xmx4g -jar <mark_dup> VERBOSITY=INFO MAX_RECORDS_IN_RAM=500000 VALIDATION_STRINGENCY=SILENT INPUT=<mapping/sample>.sorted.bam OUTPUT=<sample>.md.sort.bam METRICS_FILE=<sample>.metrics REMOVE_DUPLICATES=false
+
+  realign_target:
+    run: java -Xmx4g -jar <gatk> -T RealignerTargetCreator -I <mark_dup/sample>.md.sort.bam -nt 8 -R <genome> -o <sample>.indels.intervals
+    cpu: 8
+```
+
+The sample YAML file is the same as the example above. Now to execute together the 3 steps defined in the pipeline, PipEngine must be invoked with this command line:
+
+```
+pipengine -p pipeline.yml  -f samples.yml -s mapping mark_dup realign_target
+```
+
+When running this command line, PipEngine will raise a warning:
+
+```shell
+Warning: Directory /storage/results/sampleA/mapping not found. Assuming input will be in the CWD
+```
+
+this is normal as described in [One job with multiple steps](https://github.com/bioinformatics-ptp/bioruby-pipengine#one-job-with-multiple-steps) since the second and third steps did not find the output of the first step, as it has not yet been executed.
+
+and this will be translated into the following shell script (one for each sample):
+
+```shell
+#!/bin/bash
+#PBS -N ff020300-mapping-mark_dup-realign_target
+#PBS -l ncpus=11
+
+mkdir -p /storage/results/sampleB/mapping-mark_dup-realign_target
+cd /storage/results/sampleB/mapping-mark_dup-realign_target
+ls /ngs_reads/sampleB/*_R1_*.gz | xargs zcat | pigz -p 10 >> R1.fastq.gz
+ls /ngs_reads/sampleB/*_R2_*.gz | xargs zcat | pigz -p 10 >> R2.fastq.gz
+/software/bwa-0.6.2/bwa sampe -P /storage/genomes/bwa_index/genome <(/software/bwa-0.6.2/bwa aln -t 4 -q 20 /genomes/bwa_index/genome R1.fastq.gz) <(/software/bwa-0.6.2/bwa aln -t 4 -q 20 /genomes/bwa_index/genome R2.fastq.gz) R1.fastq.gz R2.fastq.gz | /software/samtools view -Sb - > sampleA.bam
+rm -f R1.fastq.gz R2.fastq.gz
+java -Xmx4g -jar /software/picard-tools-1.77/MarkDuplicates.jar VERBOSITY=INFO MAX_RECORDS_IN_RAM=500000 VALIDATION_STRINGENCY=SILENT INPUT=sampleB.sorted.bam OUTPUT=sampleB.md.sort.bam METRICS_FILE=sampleB.metrics REMOVE_DUPLICATES=false
+java -Xmx4g -jar /software/GenomeAnalysisTk/GenomeAnalysisTk.jar -T RealignerTargetCreator -I sampleB.md.sort.bam -nt 8 -R /storage/genomes/genome.fa -o sampleB.indels.intervals
+```
+
 
 Copyright
 =========
