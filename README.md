@@ -196,13 +196,13 @@ For instance, if I have a resequencing pipeline that will first run BWA to map t
 So in the **mark_dup** step the input placeholder (defined under the **run** key in the pipeline YAML) will be written as:
 
 ```
-<mapping/sample>.bam
+<mapping/sample>.sorted.bam
 ```
 
 If the ```<output>``` tag is defined for instance as "/storage/results", this will be translated at run-time into:
 
 ```
-/storage/results/SampleA/mapping/SampleA.bam
+/storage/results/SampleA/mapping/SampleA.sorted.bam
 ```
 
 for SampleA outputs. Basically the ```<mapping/sample>``` placeholder is a shortcut for ```<output>/<sample>/{step name, mapping in this case}/<sample>```
