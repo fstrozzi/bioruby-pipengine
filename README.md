@@ -8,8 +8,14 @@ PipEngine will generate runnable shell scripts, already configured for the PBS/T
 PipEngine is best suited for NGS pipelines, but it can be used for any kind of pipeline that can be runned on a job scheduling system.
 
 
-Usage
-=====
+:: Topics ::
+============
+
+
+
+
+:: Usage ::
+===========
 
 **Command line**
 ```shell
@@ -39,8 +45,8 @@ PipEngine accepts two input files:
 * A YAML file describing samples names, samples location and other samples-specific information
 
 
-The Pipeline YAML
-=================
+:: The Pipeline YAML ::
+=======================
 
 The basic structure of a pipeline YAML is divided into three parts: 1) pipeline name, 2) resources, 3) steps.
 
@@ -118,8 +124,8 @@ The step must be defined using standard keys:
 A note on the **run** key. If a single step need more than a command line to execute the required actions, these multiple command lines must be defined as an array in YAML (see the mapping step in the above example).
 
 
-The Sample YAML
-===============
+:: The Sample YAML ::
+=====================
 
 The samples YAML is much simpler then the pipeline YAML:
 
@@ -142,8 +148,8 @@ For instance, if I am working with human RNA-seq samples, these data must be ali
 
 Mainly the tags defined under the samples **resources** are dependent on the pipeline one wants to run. So if using BWA to perform reads alignemnt, an **index** tag must be defined here to set the BWA index prefix and it will be substituted in the pipelines command lines every time an ```<index>``` placeholder will be found in the pipeline YAML.
 
-Input and output conventions
-============================
+:: Input and output conventions ::
+==================================
 
 The input file in the pipeline YAML are defined by the ```<sample>``` placeholder that will be substituted with the sample name while the ```<sample_path>``` will be changed with the location where initial sample data (i.e. raw sequencing reads) are stored. Both this information are coming from the sample YAML file.
 
@@ -210,8 +216,8 @@ for SampleA outputs. Basically the ```<mapping/sample>``` placeholder is a short
 More complex dependence can be defined by combinations of ```<output>``` and ```<sample>``` placeholders, without having to worry about the actual sample name and the complete paths of input and output paths.
 
 
-Sample groups and complex steps
-===============================
+:: Sample groups and complex steps ::
+=====================================
 
 The pipline steps can be defined to run on a single sample or to take as input more than one sample data, depending on the command line used.
 
@@ -268,8 +274,8 @@ echo '<groups1>' | sed -e 's/,/ /g' | xargs ls >> gtf_list.txt
 This line generates the input file for Cuffcompare with the list of the transcripts.gtf files for each sample, generated using the 'groups' definition in the pipeline YAML and the line passed through the **-g** parameter, but getting rid of the commas that separate sample names. It's a workaround and it's not a super clean solution, but PipEngine wants to be a general tool not binded to specific corner cases and it always lets the user define it's own custom command lines to manage particular steps, as in this case.
 
 
-What happens at run-time
-========================
+:: What happens at run-time ::
+==============================
 
 When invoking PipEngine, the tool will look for the pipeline YAML specified and for the sample YAML file. It will load the list of samples (names and paths of input data) and for each sample it will load the information of the step specified in the command line ( **-s** parameter ).
 
@@ -316,10 +322,12 @@ This is because the output folders are by definition based on the job executed. 
 
 Since this can be a problem when a lot of steps are run together in the same job, a '--name' parameter it's available to rename the job (and thus the corresponding output folder).
 
-Examples
-========
+:: Examples ::
+==============
 
-Simple pipeline YAML with multiple command lines to prepare the inputs for BWA and run it along with Samtools:
+Example 1: Simple pipeline YAML with multiple command lines
+
+This is an example on how to prepare the inputs for BWA and run it along with Samtools:
 
 **pipeline.yml**
 ```yaml
@@ -379,7 +387,7 @@ In this case also, the **run** key defines three different command lines, that a
 
 As a rule of thumb you should put more command line into an array under the same step if these are all logically correlated and required to manipulate intermidiate files. Otherwise if command lines executes conceptually different actions they should go into different steps.
 
-Multiple steps in one job
+Example 2: Multiple steps in one job
 -------------------------
 
 Now I want to execute more steps in a single job for each sample. The pipeline YAML is defined in this way:
@@ -425,7 +433,7 @@ Warning: Directory /storage/results/sampleA/mapping not found. Assuming input wi
 
 this is normal as described in [One job with multiple steps](https://github.com/bioinformatics-ptp/bioruby-pipengine#one-job-with-multiple-steps) since the second and third steps did not find the output of the first step, as it has not yet been executed.
 
-and this will be translated into the following shell script (one for each sample):
+And this will be translated into the following shell script (one for each sample):
 
 ```shell
 #!/bin/bash
