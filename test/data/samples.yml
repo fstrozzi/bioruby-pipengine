@@ -1,8 +1,7 @@
 resources:
-  index: /storage/genomes/bt_umd31/bwa_index/bt_umd31
-  genome: /storage/genomes/bt_umd31/bwa_index/bt_umd31/Bos_taurus.fa
+  index: /storage/genomes/bwa_index/genome
+  genome: /storage/genomes/genome.fa
   output: /storage/results
-
 samples:
   sampleA: /ngs_reads/sampleA
   sampleB: /ngs_reads/sampleB

@@ -271,13 +271,20 @@ This line generates the input file for Cuffcompare with the list of the transcri
 What happens at run-time
 ========================
 
-When invoking PipEngine, the tool will look for the pipeline YAML specified and for the sample YAML file. It will load the list of samples (names and paths of input data) and for each sample it will load the information of the step specified in the command line (**-s** parameter).
+When invoking PipEngine, the tool will look for the pipeline YAML specified and for the sample YAML file. It will load the list of samples (names and paths of input data) and for each sample it will load the information of the step specified in the command line ( **-s** parameter ).
 
 PipEngine will then combine the data from the two YAML, generating the specific command lines of the selected steps and substituing all the placeholders to generate the final command lines.
 
 A shell script will be finally generated, for each sample, that will contain all the instructions to run a specific step of the pipeline plus the meta-data for the PBS scheduler.
 
 If not invoked with the **-d** option (dry-run) PipEngine will directly submit the jobs to the PBS scheduler using the "qsub" command.
+
+Dry Run
+-------
+
+The **-d** parameter lets you create the runnable shell scripts without submitting them to PBS. Use it often to check that the pipeline that will be executed is corrected and it is what you thought.
+
+Use it also to cross-check that all the placeholders in the pipeline command lines were substituted correctly before submitting the jobs.
 
 Local output folder
 -------------------
@@ -309,6 +316,61 @@ This is because the output folders are by definition based on the job executed. 
 
 Since this can be a problem when a lot of steps are run together in the same job, a '--name' parameter it's available to rename the job (and thus the corresponding output folder).
 
+Examples
+========
+
+Simple pipeline YAML with multiple command lines to prepare the inputs for BWA and run it along with Samtools:
+
+**pipeline.yml**
+```yaml
+pipeline: resequencing
+
+resources:
+  bwa: /software/bwa-0.6.2/bwa
+  samtools: /software/samtools
+
+steps:
+  mapping:
+    run:
+     - ls <sample_path>/*_R1_*.gz | xargs zcat | <pigz> -p 10 >> R1.fastq.gz
+     - ls <sample_path>/*_R2_*.gz | xargs zcat | <pigz> -p 10 >> R2.fastq.gz
+     - <bwa> sampe -P <index> <(<bwa> aln -t 4 -q 20 <index> R1.fastq.gz) <(<bwa> aln -t 4 -q 20 <index> R2.fastq.gz) R1.fastq.gz R2.fastq.gz | <samtools> view -Sb - > <sample>.bam
+     - rm -f R1.fastq.gz R2.fastq.gz
+    cpu: 11
+```
+
+**samples.yml**
+```yaml
+resources:
+  index: /storage/genomes/bwa_index/genome
+  genome: /storage/genomes/genome.fa
+  output: /storage/results
+
+samples:
+  sampleA: /ngs_reads/sampleA
+  sampleB: /ngs_reads/sampleB
+  sampleC: /ngs_reads/sampleC
+  sampleD: /ngs_reads/sampleD
+```
+
+Running PipEngine with the following command line:
+
+```pipengine -p pipeline.yml -f samples.yml -s mapping```
+
+will generate a runnable shell script for each sample:
+
+```shell
+#!/bin/bash
+#PBS -N 37735f50-mapping
+#PBS -l ncpus=11
+
+mkdir -p /storage/results/sampleA/mapping
+cd /storage/results/sampleA/mapping
+ls /ngs_reads/sampleA/*_R1_*.gz | xargs zcat | pigz -p 10 >> R1.fastq.gz
+ls /ngs_reads/sampleA/*_R2_*.gz | xargs zcat | pigz -p 10 >> R2.fastq.gz
+/storage/software/bwa-0.6.2/bwa sampe -P /storage/genomes/bwa_index/genome <(/storage/software/bwa-0.6.2/bwa aln -t 4 -q 20 /storage/genomes/bwa_index/genome R1.fastq.gz) <(/storage/software/bwa-0.6.2/bwa aln -t 4 -q 20 /storage/genomes/bwa_index/genome R2.fastq.gz) R1.fastq.gz R2.fastq.gz | /storage/software/samtools view -Sb - > sampleA.bam
+rm -f R1.fastq.gz R2.fastq.gz
+```
 
 Copyright
 =========
