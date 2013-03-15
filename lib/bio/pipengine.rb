@@ -85,7 +85,7 @@ module Bio
 			pipeline["resources"].each_key {|r| command_line.gsub!("<#{r}>",pipeline["resources"][r])}
 			samples["resources"].each_key {|r| command_line.gsub!("<#{r}>",samples["resources"][r])}
 			command_line = command_line.gsub('<pipeline>',pipeline["pipeline"])	
-      command_line = set_groups(command_line,pipeline,groups,samples,output,step) if groups
+      command_line = set_groups(command_line,pipeline,groups,samples,step) if groups
 			command_line = sub_placeholders(command_line,sample,samples)
 			command_line
 		end
