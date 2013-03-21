@@ -5,6 +5,7 @@ module Bio
 
       pipeline = YAML.load_file options[:pipeline]
 			samples = YAML.load_file options[:samples_file]
+      samples["samples"] = Hash[samples["samples"].map{ |k, v| [k.to_s, v] }]
 			samples_list = options[:samples] ? samples["samples"].select {|k,v| options[:samples].include? k} : samples["samples"]
 
 			samples_list.each_key do |sample|
@@ -122,7 +123,6 @@ module Bio
 		def self.sub_placeholders(command_line,sample,samples)
 			check_sample sample,samples
 			sample_path = samples["samples"][sample]
-      sample = sample.to_s
 			command_line.scan(/<(\S+)\/sample>/).map {|e| e.first}.each do |input_folder|
       	if Dir.exists? samples["resources"]["output"]+"/"+sample+"/"+input_folder
       		command_line = command_line.gsub(/<#{input_folder}\/sample>/,samples["resources"]["output"]+"/"+sample+"/"+input_folder+"/"+sample)
