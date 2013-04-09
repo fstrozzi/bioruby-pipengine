@@ -7,7 +7,6 @@ module Bio
 			samples = YAML.load_file options[:samples_file]
       samples["samples"] = Hash[samples["samples"].map{ |k, v| [k.to_s, v] }]
 			samples_list = options[:samples] ? samples["samples"].select {|k,v| options[:samples].include? k} : samples["samples"]
-
 			samples_list.each_key do |sample|
 				job_opts = {job_name:[], step:[], cpu:[]}
 				cmd = []
@@ -17,7 +16,8 @@ module Bio
 						puts "No step #{step} found in #{options[:pipeline]}"
 						exit
 					end
-
+					job_opts[:pbs_opts] = options[:pbs_opts]
+					job_opts[:pbs_queue] = options[:pbs_queue]
           if specs["groups"]
 						options[:groups] ||= samples["samples"].keys
 						job_opts[:groups] = true
@@ -29,7 +29,6 @@ module Bio
             	cmd << sub_fields(specs["run"],pipeline,sample,samples,job_opts[:output],options[:groups],step)
           end
 					job_opts[:cpu] << (specs["cpu"] ||= 1)
-
           if options[:local]
 						job_opts[:output] = options[:local]
 					elsif options[:groups]
@@ -60,7 +59,7 @@ module Bio
 
 		def self.run_job(cmd,opts,samples,sample)
 			File.open(opts[:job_name]+"_job.sh","w") do |file|
-				file.write "#!/bin/bash\n#PBS -N #{opts[:job_name]}\n#PBS -l ncpus=#{opts[:cpu]}\n\n"
+				file.write set_pbs_header(opts)
 				if opts[:local]
 					file.write "mkdir -p #{opts[:output]+"/"+opts[:job_name]}\ncd #{opts[:output]+"/"+opts[:job_name]}\n"
 				else
@@ -77,7 +76,15 @@ module Bio
 					file.write "rm -fr #{opts[:output]+"/"+opts[:job_name]}\n"
 				end
 			end
-			system "qsub #{opts[:job_name]}_job.sh" unless opts[:dry]
+			system "qsub #{"-q "+opts[:pbs_queue] if opts[:pbs_queue]} #{opts[:job_name]}_job.sh" unless opts[:dry]
+		end
+
+		def self.set_pbs_header(opts)
+			header = "#!/bin/bash\n#PBS -N #{opts[:job_name]}\n#PBS -l ncpus=#{opts[:cpu]}\n"
+			opts[:pbs_opts].each do |o|
+				header += "#PBS -l #{o}\n"
+			end
+			header+"\n"
 		end
 
 		def self.sub_fields(command,pipeline,sample,samples,output,groups,step)
