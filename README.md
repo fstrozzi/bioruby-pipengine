@@ -25,6 +25,7 @@ PipEngine is best suited for NGS pipelines, but it can be used for any kind of p
 
 [Examples](https://github.com/bioinformatics-ptp/bioruby-pipengine#-examples-)
 
+[PBS Options](https://github.com/bioinformatics-ptp/bioruby-pipengine#-pbs-options-)
 
 :: Usage ::
 ===========
@@ -49,6 +50,8 @@ pipenengine -p pipeline.yml -f samples.yml -s mapping --local /tmp
   --create-samples, -c <s>:   Create samples.yml file from a Sample directory (only for CASAVA projects)
          --groups, -g <s+>:   Group of samples to be processed by a given step
             --name, -n <s>:   Analysis name
+       --pbs-opts, -b <s+>:   PBS options
+       --pbs-queue, -q <s>:   PBS queue
                 --help, -h:   Show this message
 ```
 
@@ -226,7 +229,9 @@ If the ```<output>``` tag is defined for instance as "/storage/results", this wi
 
 for SampleA outputs. Basically the ```<mapping/sample>``` placeholder is a shortcut for ```<output>/<sample>/{step name, mapping in this case}/<sample>```
 
-More complex dependence can be defined by combinations of ```<output>``` and ```<sample>``` placeholders, without having to worry about the actual sample name and the complete paths of input and output paths.
+Following the same idea, using a ```<mapping/>``` placeholder (note the / at the end) will be translated into ```<output>/<sample>/{step name, mapping in this case}/``` , covering the case when one wants to point to the previous step output directory, but without having the ```<sample>``` appended to the end of the path.
+
+More complex dependence can be defined by combinations of ```<output>``` and ```<sample>``` placeholders, or using the ```<step/>``` and ```<step/sample>``` placeholders, without having to worry about the actual sample name and the complete paths of input and output paths.
 
 
 :: Sample groups and complex steps ::
@@ -464,6 +469,27 @@ java -Xmx4g -jar /software/picard-tools-1.77/MarkDuplicates.jar VERBOSITY=INFO M
 java -Xmx4g -jar /software/GenomeAnalysisTk/GenomeAnalysisTk.jar -T RealignerTargetCreator -I sampleB.md.sort.bam -nt 8 -R /storage/genomes/genome.fa -o sampleB.indels.intervals
 ```
 
+PBS Options
+===========
+
+If there is the need to pass to Pipengine specific PBS options, the ```--pbs-opts``` parameter can be used.
+
+This parameter accepts a list of options and each one will be added to the PBS header in the shell script, along with the ```-l``` PBS parameter.
+
+So for example, the following options passed to ```--pbs-opts```:
+
+```shell
+--pbs-opts nodes=2:ppn=8 host=node5
+```
+
+will become, in the shell script:
+
+```shell
+#PBS -l nodes=2:ppn=8
+#PBS -l host=node5
+```
+
+If a specific queue need to be selected for sending the jobs to PBS, the ```--pbs-queue``` parameter can be used. This will pass to the ```qsub``` command the ```-q <queue name>``` taken from the command line.
 
 Copyright
 =========
