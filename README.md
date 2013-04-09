@@ -231,7 +231,7 @@ for SampleA outputs. Basically the ```<mapping/sample>``` placeholder is a short
 
 Following the same idea, using a ```<mapping/>``` placeholder (note the / at the end) will be translated into ```<output>/<sample>/{step name, mapping in this case}/``` , covering the case when one wants to point to the previous step output directory, but without having the ```<sample>``` appended to the end of the path.
 
-More complex dependences can be defined by combinations of ```<output>``` and ```<sample>``` placeholders, or using the ```<step/>``` and ```<step/sample>``` placeholders, without having to worry about the actual sample name and the complete paths of input and output paths.
+More complex dependences can be defined by combinations of ```<output>``` and ```<sample>``` placeholders, or using the ```<step/>``` and ```<step/sample>``` placeholders, without having to worry about the actual sample name and the complete input and output paths.
 
 
 :: Sample groups and complex steps ::
