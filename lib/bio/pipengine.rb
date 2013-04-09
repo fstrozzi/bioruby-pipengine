@@ -13,7 +13,6 @@ module Bio
 				cmd = []
 				options[:steps].each do |step|
 					specs = pipeline["step"][step]
-
           if specs.nil?
 						puts "No step #{step} found in #{options[:pipeline]}"
 						exit
@@ -123,6 +122,15 @@ module Bio
 		def self.sub_placeholders(command_line,sample,samples)
 			check_sample sample,samples
 			sample_path = samples["samples"][sample]
+			command_line = expand_step_sample_placeholder(command_line,sample,samples) # this is for placeholders like <mapping/sample>
+			command_line = expand_step_placeholder(command_line,sample,samples) # this is for placeholders like <mapping/>
+      command_line = command_line.gsub('<sample>',sample)
+      command_line = command_line.gsub('<sample_path>',sample_path)
+      command_line = command_line.gsub('<output>',samples["resources"]["output"])
+			command_line	
+		end
+
+		def self.expand_step_sample_placeholder(command_line,sample,samples)
 			command_line.scan(/<(\S+)\/sample>/).map {|e| e.first}.each do |input_folder|
       	if Dir.exists? samples["resources"]["output"]+"/"+sample+"/"+input_folder
       		command_line = command_line.gsub(/<#{input_folder}\/sample>/,samples["resources"]["output"]+"/"+sample+"/"+input_folder+"/"+sample)
@@ -131,10 +139,19 @@ module Bio
         	command_line = command_line.gsub(/<#{input_folder}\/sample>/,sample)
       	end
 			end
-      command_line = command_line.gsub('<sample>',sample)
-      command_line = command_line.gsub('<sample_path>',sample_path)
-      command_line = command_line.gsub('<output>',samples["resources"]["output"])
-			command_line	
+			command_line
+		end
+
+		def self.expand_step_placeholder(command_line,sample,samples)
+			command_line.scan(/<(\S+)\/>/).map {|e| e.first}.each do |input_folder|
+      	if Dir.exists? samples["resources"]["output"]+"/"+sample+"/"+input_folder
+      		command_line = command_line.gsub(/<#{input_folder}\/>/,samples["resources"]["output"]+"/"+sample+"/"+input_folder+"/")
+      	else
+        	warn "Warning: Directory "+samples["resources"]["output"]+"/"+sample+"/"+input_folder+" not found. Assuming input will be in the CWD"
+        	command_line = command_line.gsub(/<#{input_folder}\/>/,input_folder+"/")
+      	end
+			end
+			command_line
 		end
 
 		def self.check_sample(sample,samples)
