@@ -25,7 +25,7 @@ PipEngine is best suited for NGS pipelines, but it can be used for any kind of p
 
 [Examples](https://github.com/bioinformatics-ptp/bioruby-pipengine#-examples-)
 
-[PBS Options](https://github.com/bioinformatics-ptp/bioruby-pipengine#pbs-options)
+[PBS Options](https://github.com/bioinformatics-ptp/bioruby-pipengine#-pbs-options-)
 
 :: Usage ::
 ===========
