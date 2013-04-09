@@ -15,7 +15,7 @@ PipEngine is best suited for NGS pipelines, but it can be used for any kind of p
 
 [The Pipeline YAML](https://github.com/bioinformatics-ptp/bioruby-pipengine#-the-pipeline-yaml-)
 
-[The Samples YAML](https://github.com/bioinformatics-ptp/bioruby-pipengine#-the-sample-yaml-)
+[The Samples YAML](https://github.com/bioinformatics-ptp/bioruby-pipengine#-the-samples-yaml-)
 
 [Input and output conventions](https://github.com/bioinformatics-ptp/bioruby-pipengine#-input-and-output-conventions-)
 
@@ -25,7 +25,7 @@ PipEngine is best suited for NGS pipelines, but it can be used for any kind of p
 
 [Examples](https://github.com/bioinformatics-ptp/bioruby-pipengine#-examples-)
 
-[PBS Options](https://github.com/bioinformatics-ptp/bioruby-pipengine#-pbs-options-)
+[PBS Options](https://github.com/bioinformatics-ptp/bioruby-pipengine#pbs-options)
 
 :: Usage ::
 ===========
@@ -231,7 +231,7 @@ for SampleA outputs. Basically the ```<mapping/sample>``` placeholder is a short
 
 Following the same idea, using a ```<mapping/>``` placeholder (note the / at the end) will be translated into ```<output>/<sample>/{step name, mapping in this case}/``` , covering the case when one wants to point to the previous step output directory, but without having the ```<sample>``` appended to the end of the path.
 
-More complex dependence can be defined by combinations of ```<output>``` and ```<sample>``` placeholders, or using the ```<step/>``` and ```<step/sample>``` placeholders, without having to worry about the actual sample name and the complete paths of input and output paths.
+More complex dependences can be defined by combinations of ```<output>``` and ```<sample>``` placeholders, or using the ```<step/>``` and ```<step/sample>``` placeholders, without having to worry about the actual sample name and the complete paths of input and output paths.
 
 
 :: Sample groups and complex steps ::
@@ -469,10 +469,10 @@ java -Xmx4g -jar /software/picard-tools-1.77/MarkDuplicates.jar VERBOSITY=INFO M
 java -Xmx4g -jar /software/GenomeAnalysisTk/GenomeAnalysisTk.jar -T RealignerTargetCreator -I sampleB.md.sort.bam -nt 8 -R /storage/genomes/genome.fa -o sampleB.indels.intervals
 ```
 
-PBS Options
-===========
+:: PBS Options ::
+=================
 
-If there is the need to pass to Pipengine specific PBS options, the ```--pbs-opts``` parameter can be used.
+If there is the need to pass to PipEngine specific PBS options, the ```--pbs-opts``` parameter can be used.
 
 This parameter accepts a list of options and each one will be added to the PBS header in the shell script, along with the ```-l``` PBS parameter.
 
