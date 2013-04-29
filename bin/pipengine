@@ -8,7 +8,7 @@ options = Trollop::options do
 	opt :pipeline, "YAML file with pipeline and sample details", :short => "p", :type => :string, :default => "pipeline.yml"
 	opt :samples_file, "YAML file with samples name and directory paths", :short => "f", :type => :string, :default => "samples.yml"
 	opt :samples, "List of sample names to run the pipeline", :type => :strings, :short => "l"
-	opt :steps, "List of steps to be executed", :type => :strings, :short => "s", :required => true
+	opt :steps, "List of steps to be executed", :type => :strings, :short => "s"
   opt :dry,"Dry run. Just create the job script without sending it to the batch system", :short => "d"
 	opt :local, "Local output root folder", :type => :string
 	opt :create_samples, "Create samples.yml file from a Sample directory (only for CASAVA projects)", :short => "c", :type => :string
@@ -23,6 +23,7 @@ if options[:create_samples]
 elsif options[:pipeline] && options[:samples_file]
 	abort("File not found: "+options[:pipeline]) unless File.exists? options[:pipeline]
 	abort("File not found: "+options[:samples_file]) unless File.exists? options[:samples_file]
+	abort("Please provide a valid step name with the --step parameter") unless options[:steps]
 	Bio::Pipengine.run(options)
 else
 	puts "Check available options: #{$0} -h"
