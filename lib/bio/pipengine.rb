@@ -81,8 +81,10 @@ module Bio
 
 		def self.set_pbs_header(opts)
 			header = "#!/bin/bash\n#PBS -N #{opts[:job_name]}\n#PBS -l ncpus=#{opts[:cpu]}\n"
-			opts[:pbs_opts].each do |o|
-				header += "#PBS -l #{o}\n"
+			unless opts[:pbs_opts].nil? 
+				opts[:pbs_opts].each do |o|
+					header += "#PBS -l #{o}\n"
+				end
 			end
 			header+"\n"
 		end
