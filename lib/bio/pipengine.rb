@@ -24,9 +24,9 @@ module Bio
 					end
 
           if specs["run"].kind_of? Array
-            	specs["run"].each {|run| cmd << sub_fields(run,pipeline,sample,samples,job_opts[:output],options[:groups],step) }
+            	specs["run"].each {|run| cmd << sub_fields(run,pipeline,sample,samples,job_opts[:output],options[:groups],step,specs["cpu"]) }
           else
-            	cmd << sub_fields(specs["run"],pipeline,sample,samples,job_opts[:output],options[:groups],step)
+            	cmd << sub_fields(specs["run"],pipeline,sample,samples,job_opts[:output],options[:groups],step,specs["cpu"])
           end
 					job_opts[:cpu] << (specs["cpu"] ||= 1)
           if options[:local]
@@ -89,11 +89,12 @@ module Bio
 			header+"\n"
 		end
 
-		def self.sub_fields(command,pipeline,sample,samples,output,groups,step)
+		def self.sub_fields(command,pipeline,sample,samples,output,groups,step,cpu)
 			command_line = command
 			pipeline["resources"].each_key {|r| command_line.gsub!("<#{r}>",pipeline["resources"][r])}
 			samples["resources"].each_key {|r| command_line.gsub!("<#{r}>",samples["resources"][r])}
-			command_line = command_line.gsub('<pipeline>',pipeline["pipeline"])	
+			command_line = command_line.gsub('<pipeline>',pipeline["pipeline"])
+			command_line = command_line.gsub('<cpu>',cpu.to_s)
       command_line = set_groups(command_line,pipeline,groups,samples,step) if groups
 			command_line = sub_placeholders(command_line,sample,samples)
 			command_line
