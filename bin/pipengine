@@ -11,7 +11,7 @@ options = Trollop::options do
 	opt :steps, "List of steps to be executed", :type => :strings, :short => "s"
   opt :dry,"Dry run. Just create the job script without sending it to the batch system", :short => "d"
 	opt :local, "Local output root folder", :type => :string
-	opt :create_samples, "Create samples.yml file from a Sample directory (only for CASAVA projects)", :short => "c", :type => :string
+	opt :create_samples, "Create samples.yml file from a Sample directory (only for CASAVA projects)", :short => "c", :type => :strings
 	opt :groups, "Group of samples to be processed by a given step", :short => "g", :type => :strings
 	opt :name, "Analysis name", :short => "n", :type => :string
 	opt :pbs_opts, "PBS options", :type => :strings
@@ -19,7 +19,7 @@ options = Trollop::options do
 end
 
 if options[:create_samples]
-	Bio::Pipengine::Samples.create_samples options[:create_samples]
+	Bio::Pipengine.create_samples options[:create_samples]
 elsif options[:pipeline] && options[:samples_file]
 	abort("File not found: "+options[:pipeline]) unless File.exists? options[:pipeline]
 	abort("File not found: "+options[:samples_file]) unless File.exists? options[:samples_file]
