@@ -3,6 +3,9 @@ module Bio
 		
 		class Job
 			
+			# a Job object holds information on a job to be submitted
+			# samples_groups and samples_obj are used to store information in case of steps that require to combine info
+			# from multiple samples
 			attr_accessor :name, :cpus, :resources, :command_line, :local, :samples_groups, :samples_obj
 			def initialize(name)
 				@name = generate_uuid + "-" + name
@@ -19,6 +22,7 @@ module Bio
 				self.resources["output"]
 			end
 
+			# add all the command lines for a given step
 			def add_step(step,sample)
 				
 				# setting job working directory
@@ -40,6 +44,8 @@ module Bio
 				self.command_line << "mkdir -p #{working_dir}"
 				self.command_line << "cd #{working_dir}"
 				
+				# generate command lines for this step
+
 				if step.run.kind_of? Array
 					step.run.each do |cmd|
 						self.command_line << generate_cmd_line(cmd,sample,step)	
@@ -47,7 +53,9 @@ module Bio
 				else
 					self.command_line << generate_cmd_line(step.run,sample,step)
 				end
-				
+			
+				# check if a local (i.e. different from 'output') directory is set
+
 				if self.local
 					final_output = ""
 					if step.is_group?
@@ -62,6 +70,7 @@ module Bio
 
 			end
 
+			# convert the job object into a PBS script
 			def to_pbs(options)
 				header = []
 				header << "#!/bin/bash"
@@ -83,20 +92,23 @@ module Bio
 
 		private
 			
+			# create a unique ID for each job
 			def generate_uuid
-				UUID.new.generate.split("-").first
+				UUID.new.generate.split("-").slice(0,2).join("-")
 			end
-
+			
+			# this method call other methods to perform the right substitutions into the command lines
 			def generate_cmd_line(cmd,sample,step)
-				if step.is_group?
+				if step.is_group? # if is a sample groups steps call a different method
 					set_groups_cmd(step,self.samples_groups)
 					cmd = sub_groups(cmd,step)
 				else
-					cmd = sub_placeholders(cmd,sample,step)
+					cmd = sub_placeholders(cmd,sample,step) # normal step, perform usual substitutions
 				end
 				return cmd
 			end
-			
+		
+			# perform substitutions on all the placeholders
 			def sub_placeholders(cmd,sample,step=nil)	
 				tmp_cmd = cmd.gsub(/<sample>/,sample.name)
 				tmp_cmd = tmp_cmd.gsub(/<sample_path>/,sample.path.join(" "))
@@ -125,9 +137,11 @@ module Bio
 				cmd.gsub!(/<cpu>/,step.cpus.to_s) unless step.nil?
 				return cmd
 			end
+	
 
+			# creates actual groups command lines to be substituted where <groups> placeholders are found
 			def set_groups_cmd(step,sample_groups)
-				if step.groups_def.kind_of? Array
+				if step.groups_def.kind_of? Array # in case of multiple groups command line
 					step.groups_cmd = []
 					step.groups_def.each do |g_def|
 						step.groups_cmd << generate_groups_cmd(g_def,sample_groups)
@@ -137,6 +151,7 @@ module Bio
 				end
 			end
 
+			# take the groups_cmd and perform the subsitutions into the step command lines
 			def sub_groups(cmd,step)
 				cmd = sub_resources_and_cpu(cmd,step)
 				if step.groups_cmd.kind_of? Array
@@ -149,6 +164,7 @@ module Bio
 				return cmd
 			end
 
+			# this sub method handle different sample groups (like comma separated, space separated etc.)
 			def generate_groups_cmd(group_def,sample_groups)
 				group_cmd = []	
 				sample_groups.each do |sample_name|
@@ -163,6 +179,7 @@ module Bio
 				return group_cmd.join("\s")
 			end
 
+			# take a non-space separated list of samples and perform the substitution with the group defitions
 			def split_and_sub(sep,group_def,group)	
 				cmd_line = []
 				group.split(sep).each do |sample_name|
