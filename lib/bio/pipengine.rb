@@ -2,12 +2,28 @@ module Bio
 	module Pipengine
 
 		def self.run(options)
-      pipeline = YAML.load_file options[:pipeline]
+      
+			# reading the yaml files
+
+			pipeline = YAML.load_file options[:pipeline]
 			samples_file = YAML.load_file options[:samples_file]
       samples_file["samples"] = Hash[samples_file["samples"].map{ |k, v| [k.to_s, v] }]
+		
+			# pre-runinng checks	
+			check_samples(options[:samples],samples_file) if options[:samples]
+			check_steps(options[:steps],pipeline)
+			
+			if options[:inspect_steps]
+				inspect_steps(pipeline)
+				exit
+			end
+			
+			########### START ###########
+
+			# list of samples the jobs will work on
 			samples_list = options[:samples] ? samples_file["samples"].select {|k,v| options[:samples].include? k} : samples_file["samples"]	
 			
-			# steps that run on multiple samples should go alone
+			# steps that run on multiple samples will go alone (i.e. no multi steps job)
 			if options[:steps].size == 1
 				step = Bio::Pipengine::Step.new(options[:steps].first,pipeline["step"][options[:steps].first])
 				if step.is_group?
@@ -51,20 +67,37 @@ module Bio
 		end
 
 		# check if sample exists
-
-		def self.check_sample(sample,samples)
-			unless samples["samples"].include? sample
-				puts "No sample #{sample} found in samples file!"	
-				exit
+		def self.check_samples(passed_samples,samples)
+			passed_samples.each do |sample|
+				unless samples["samples"].keys.include? sample
+					puts "Sample \"#{sample}\" do not exist in sample file!"
+					exit
+				end
 			end
 		end
 
 		# check if step exists
-
-		def self.check_step
-			# TODO
+		def self.check_steps(passed_steps,pipeline)
+			passed_steps.each do |step|
+				unless pipeline["step"].keys.include? step
+					puts "Step \"#{step}\" do not exist in pipeline file!"
+					exit
+				end
+			end
 		end
 
+		# load the pipeline file and show a list of available steps
+		def self.inspect_steps(pipeline_file)
+			pipeline = YAML.load_file pipeline_file
+			print "\nPipeline: ".blue 
+			print "#{pipeline["pipeline"]}\n\n".green
+			puts "List of available steps:".light_blue
+			pipeline["step"].each_key do |s|
+				print "\s\s#{s}:\s\s".blue 
+				print "#{pipeline["step"][s]["desc"]}\n".green
+			end
+			puts "\n"
+		end
 		# create the samples.yml file
 
 		def self.create_samples(sample_dirs)

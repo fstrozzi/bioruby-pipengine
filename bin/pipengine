@@ -16,15 +16,23 @@ options = Trollop::options do
 	opt :name, "Analysis name", :short => "n", :type => :string
 	opt :pbs_opts, "PBS options", :type => :strings
 	opt :pbs_queue, "PBS queue", :type => :string
+	opt :inspect_steps, "Show steps", :short => "i"
 end
 
 if options[:create_samples]
 	Bio::Pipengine.create_samples options[:create_samples]
 elsif options[:pipeline] && options[:samples_file]
 	abort("File not found: "+options[:pipeline]) unless File.exists? options[:pipeline]
+	if options[:inspect_steps]
+		Bio::Pipengine.inspect_steps(options[:pipeline])
+		exit
+	end
 	abort("File not found: "+options[:samples_file]) unless File.exists? options[:samples_file]
 	abort("Please provide a valid step name with the --step parameter") unless options[:steps]
+
 	Bio::Pipengine.run(options)
 else
 	puts "Check available options: #{$0} -h"
 end
+
+
