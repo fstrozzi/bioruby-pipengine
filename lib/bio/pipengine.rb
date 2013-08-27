@@ -29,7 +29,7 @@ module Bio
 
 		# handle steps that run on multiple samples (i.e. sample groups job)
 		def self.check_and_run_groups(samples_file,pipeline,samples_list,options)
-			step_groups = options[:steps].map {|s| Bio::Pipengine::Step.new(s,pipeline["step"][s]).is_group?}
+			step_groups = options[:steps].map {|s| Bio::Pipengine::Step.new(s,pipeline["steps"][s]).is_group?}
 			if step_groups.include? false
 				if step_groups.size > 1
 					puts "\nAbort! You are trying to run both multi-samples and single sample steps in the same job".red
@@ -65,7 +65,7 @@ module Bio
 			job.samples_obj = sample if sample.kind_of? Hash
 			# cycling through steps and add command lines to the job
 			options[:steps].each do |step_name|
-				step = Bio::Pipengine::Step.new(step_name,pipeline["step"][step_name]) # parsing step instructions
+				step = Bio::Pipengine::Step.new(step_name,pipeline["steps"][step_name]) # parsing step instructions
 				job.add_step(step,sample) # adding step command lines to the job	
 			end
 			script = job.to_pbs(options) # converting the Job into a PBS compatible script
@@ -76,7 +76,7 @@ module Bio
 		def self.check_samples(passed_samples,samples)
 			passed_samples.each do |sample|
 				unless samples["samples"].keys.include? sample
-					puts "Sample \"#{sample}\" do not exist in sample file!"
+					puts "Sample \"#{sample}\" does not exist in sample file!"
 					exit
 				end
 			end
@@ -85,8 +85,8 @@ module Bio
 		# check if step exists
 		def self.check_steps(passed_steps,pipeline)
 			passed_steps.each do |step|
-				unless pipeline["step"].keys.include? step
-					puts "Step \"#{step}\" do not exist in pipeline file!"
+				unless pipeline["steps"].keys.include? step
+					puts "Step \"#{step}\" does not exist in pipeline file!"
 					exit
 				end
 			end
@@ -98,9 +98,9 @@ module Bio
 			print "\nPipeline: ".blue 
 			print "#{pipeline["pipeline"]}\n\n".green
 			puts "List of available steps:".light_blue
-			pipeline["step"].each_key do |s|
+			pipeline["steps"].each_key do |s|
 				print "\s\s#{s}:\s\s".blue 
-				print "#{pipeline["step"][s]["desc"]}\n".green
+				print "#{pipeline["steps"][s]["desc"]}\n".green
 			end
 			puts "\n"
 		end

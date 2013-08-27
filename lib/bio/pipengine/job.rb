@@ -41,11 +41,10 @@ module Bio
 				# set job cpus number to the higher step cpus (this in case of multiple steps)
 				self.cpus = step.cpus if step.cpus > self.cpus
 				# adding job working directory
-				self.command_line << "mkdir -p #{working_dir}"
+				self.command_line << "\nmkdir -p #{working_dir}"
 				self.command_line << "cd #{working_dir}"
 				
 				# generate command lines for this step
-
 				if step.run.kind_of? Array
 					step.run.each do |cmd|
 						self.command_line << generate_cmd_line(cmd,sample,step)	
@@ -55,7 +54,6 @@ module Bio
 				end
 			
 				# check if a local (i.e. different from 'output') directory is set
-
 				if self.local
 					final_output = ""
 					if step.is_group?
