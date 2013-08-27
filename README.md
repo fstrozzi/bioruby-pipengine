@@ -52,7 +52,8 @@ pipenengine -p pipeline.yml -f samples.yml -s mapping --local /tmp
             --name, -n <s>:   Analysis name
        --pbs-opts, -b <s+>:   PBS options
        --pbs-queue, -q <s>:   PBS queue
-                --help, -h:   Show this message
+			 --inspect_steps, -i:		Show steps 
+			 					--help, -h:   Show this message
 ```
 
 PipEngine accepts two input files:
@@ -82,11 +83,8 @@ resources:
   pigz: /software/pigz
 
 steps:
-  quality:
-    run: <fastqc> --casava <sample_path>/*.gz -o <output> --noextract -nt 8
-    threads: 8
-
   mapping:
+    desc: Run BWA on each sample to perform alignment
     run:
      - ls <sample_path>/*_R1_*.gz | xargs zcat | <pigz> -p 10 >> R1.fastq.gz
      - ls <sample_path>/*_R2_*.gz | xargs zcat | <pigz> -p 10 >> R2.fastq.gz
@@ -135,7 +133,7 @@ The step must be defined using standard keys:
 * under the step name, a **run** key must be defined to hold the actual command line that will be executed
 * a **cpu** key must be defined if the command line uses more than 1 CPU at runtime
 * a **group** key must be defined if the command line takes as input more than one sample (more details later)
-
+* a **desc** key has been added to insert a short description that will be displayed using the **-i** option of PipEngine
 A note on the **run** key. If a single step need more than a command line to execute the required actions, these multiple command lines must be defined as an array in YAML (see the mapping step in the above example).
 
 
