@@ -2,40 +2,46 @@ module Bio
 	module Pipengine
 
 		def self.run(options)
-      
-			# reading the yaml files
 
+			# reading the yaml files
 			pipeline = YAML.load_file options[:pipeline]
 			samples_file = YAML.load_file options[:samples_file]
       samples_file["samples"] = Hash[samples_file["samples"].map{ |k, v| [k.to_s, v] }]
 		
-			# pre-runinng checks	
+			# pre-running checks	
 			check_samples(options[:samples],samples_file) if options[:samples]
 			check_steps(options[:steps],pipeline)
-			
-			if options[:inspect_steps]
-				inspect_steps(pipeline)
-				exit
-			end
 			
 			########### START ###########
 
 			# list of samples the jobs will work on
 			samples_list = options[:samples] ? samples_file["samples"].select {|k,v| options[:samples].include? k} : samples_file["samples"]	
 			
-			# steps that run on multiple samples will go alone (i.e. no multi steps job)
-			if options[:steps].size == 1
-				step = Bio::Pipengine::Step.new(options[:steps].first,pipeline["step"][options[:steps].first])
-				if step.is_group?
-					samples_obj = {}
-					samples_list.each_key {|sample_name| samples_obj[sample_name] = Bio::Pipengine::Sample.new(sample_name,samples_list[sample_name])}
-					create_job(samples_file,pipeline,samples_list,options,samples_obj)
-				end
-			else # its a normal step, so iterate on samples and create one job per sample
+			run_group = check_and_run_groups(samples_file,pipeline,samples_list,options)
+			
+			unless run_group # there are no multi-sample steps, so iterate on samples and create one job per sample
 				samples_list.each_key do |sample_name|
 					sample = Bio::Pipengine::Sample.new(sample_name,samples_list[sample_name])
 					create_job(samples_file,pipeline,samples_list,options,sample)
 				end
+			end
+		end
+
+		# handle steps that run on multiple samples (i.e. sample groups job)
+		def self.check_and_run_groups(samples_file,pipeline,samples_list,options)
+			step_groups = options[:steps].map {|s| Bio::Pipengine::Step.new(s,pipeline["step"][s]).is_group?}
+			if step_groups.include? false
+				if step_groups.size > 1
+					puts "\nAbort! You are trying to run both multi-samples and single sample steps in the same job".red
+					exit
+				else
+					return false
+				end
+			else
+				samples_obj = {}
+				samples_list.each_key {|sample_name| samples_obj[sample_name] = Bio::Pipengine::Sample.new(sample_name,samples_list[sample_name])}
+				create_job(samples_file,pipeline,samples_list,options,samples_obj)
+				return true
 			end
 		end
 

@@ -118,7 +118,7 @@ module Bio
 				
 				# for placeholders like <mapping/sample>
 				tmp_cmd.scan(/<(\S+)\/sample>/).map {|e| e.first}.each do |input_folder|
-					tmp_cmd = tmp_cmd.gsub!(/<#{input_folder}\/sample>/,self.output+"/"+sample.name+"/"+input_folder+"/"+sample.name)
+					tmp_cmd = tmp_cmd.gsub(/<#{input_folder}\/sample>/,self.output+"/"+sample.name+"/"+input_folder+"/"+sample.name)
 				end
 				
 				# for placeholders like <mapping/>
