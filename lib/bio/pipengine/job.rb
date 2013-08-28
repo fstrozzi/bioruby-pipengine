@@ -74,10 +74,10 @@ module Bio
 				TORQUE::Qsub.new do |job|
 				  # job.m = "abe"
                   job.name = self.name
-                  job.queue = options[:pbs_queue] if options[:pbs_queue]
+                  job.queue = options[:pbs_queue]
                   # job.shell = '/bin/bash'
                   job.cpus = self.cpus
-                  job.l = options[:pbs_opts] if options[:pbs_opts]
+                  job.l = options[:pbs_opts]
                   job.script = self.command_line.join("\n")+"\n"
                 end
 
