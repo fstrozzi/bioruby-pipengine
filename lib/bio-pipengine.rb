@@ -1,6 +1,6 @@
 require 'yaml'
 
-require 'uuid'
+require 'securerandom'
 require 'trollop'
 require 'colorize'
 
