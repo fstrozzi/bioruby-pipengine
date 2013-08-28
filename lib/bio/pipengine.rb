@@ -70,7 +70,7 @@ module Bio
 				job.add_step(step,sample) # adding step command lines to the job	
 			end
 			script = job.to_pbs(options) # converting the Job into a TORQUE::Qsub PBS compatible object
-			script.submit(options[:dry])
+			script.submit(options)
 			#system("qsub #{script}") unless options[:dry] # submitting the job to the scheduler	
 		end
 
