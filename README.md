@@ -127,12 +127,12 @@ The same thing happens for samples names, input and output directories and inter
 Step definition
 ---------------
 
-The step must be defined using standard keys:
+A step must be defined using standard keys:
 
 * the first key must be the step name
 * under the step name, a **run** key must be defined to hold the actual command line that will be executed
 * a **cpu** key must be defined if the command line uses more than 1 CPU at runtime
-* a **group** key must be defined if the command line takes as input more than one sample (more details later)
+* a **groups** key must be defined if the command line takes as input more than one sample (more details later)
 * a **desc** key has been added to insert a short description that will be displayed using the **-i** option of PipEngine
 
 A note on the **run** key. If a single step need more than a command line to execute the required actions, these multiple command lines must be defined as an array in YAML (see the mapping step in the above example).
@@ -160,12 +160,12 @@ In this YAML there is again a **resources** key, but this time the tags defined 
 
 For instance, if I am working with human RNA-seq samples, these data must be aligned on the human genome, so it makes sense that the **genome** tag must be defined here and not in the pipeline YAML, which must be as much generic as possible.
 
-Mainly the tags defined under the samples **resources** are dependent on the pipeline one wants to run. So if using BWA to perform reads alignemnt, an **index** tag must be defined here to set the BWA index prefix and it will be substituted in the pipelines command lines every time an ```<index>``` placeholder will be found in the pipeline YAML.
+Generally, the tags defined under the samples **resources** are dependent on the pipeline and analysis one wants to run. So if using BWA to perform reads alignemnt, an **index** tag must be defined here to set the BWA index prefix and it will be substituted in the pipelines command lines every time an ```<index>``` placeholder will be found in the pipeline YAML.
 
 :: Input and output conventions ::
 ==================================
 
-The input file in the pipeline YAML are defined by the ```<sample>``` placeholder that will be substituted with the sample name while the ```<sample_path>``` will be changed with the location where initial sample data (i.e. raw sequencing reads) are stored. Both this information are coming from the sample YAML file.
+The inputs in the steps defined in the pipeline YAML are expressed by the ```<sample>``` placeholder that will be substituted with a sample name and the ```<sample_path>```, which will be changed with the location where initial data (i.e. raw sequencing reads) are stored for that particular sample. Both this information are provided in the sample YAML file.
 
 The ```<output>``` placeholder is a generic one to define the root location for the pipeline outputs. This parameter is also defined in the samples YAML.
 
@@ -180,9 +180,9 @@ That is, given a generic /storage/pipeline_results ```<output>``` folder, the ou
                          /SampleD/mapping/SampleD.bam
 ```
 
-This simple convention keeps things clearer and well organized. The output file name can be decided during the pipeline creation, but it's a good habit to name it using the sample name.
+This simple convention keeps things clean and organized. The output file name can be decided during the pipeline creation, but it's a good habit to name it using the sample name.
 
-When new steps of the same pipeline are run output folders are updated accordingly, so for example if after the **mapping** step a **mark_dup** step is run, the output folder will look like this:
+When new steps of the same pipeline are run, output folders are updated accordingly. So for example if after the **mapping** step a **mark_dup** step is run, the output folder will look like this:
 
 ```shell
 /storage/pipeline_results/SampleA/mapping
@@ -197,7 +197,7 @@ When new steps of the same pipeline are run output folders are updated according
 How steps are connected together
 --------------------------------
 
-One step is connected to another by simply requiring that its input is coming from the output of another step. This is just achived by a combination of ```<output>``` and ```<sample>``` placeholders in the pipeline command line definitions.
+One step is connected to another by simply requiring that its input is the output of another preceding step. This is just achived by a combination of ```<output>``` and ```<sample>``` placeholders in the pipeline command line definitions.
 
 For instance, if I have a resequencing pipeline that will first run BWA to map the reads and then a mark duplicate step, the mark_dup step will be dependent from the BWA output.
 
@@ -228,7 +228,7 @@ If the ```<output>``` tag is defined for instance as "/storage/results", this wi
 
 for SampleA outputs. Basically the ```<mapping/sample>``` placeholder is a shortcut for ```<output>/<sample>/{step name, mapping in this case}/<sample>```
 
-Following the same idea, using a ```<mapping/>``` placeholder (note the / at the end) will be translated into ```<output>/<sample>/{step name, mapping in this case}/``` , covering the case when one wants to point to the previous step output directory, but without having the ```<sample>``` appended to the end of the path.
+Following the same idea, using a ```<mapping/>``` placeholder (note the / at the end) will be translated into ```<output>/<sample>/{step name, mapping in this case}/``` , to address the scenario when a user wants to point to the previous step output directory, but without having the ```<sample>``` appended to the end of the path.
 
 More complex dependences can be defined by combinations of ```<output>``` and ```<sample>``` placeholders, or using the ```<step/>``` and ```<step/sample>``` placeholders, without having to worry about the actual sample name and the complete input and output paths.
 
@@ -236,7 +236,7 @@ More complex dependences can be defined by combinations of ```<output>``` and ``
 :: Sample groups and complex steps ::
 =====================================
 
-The pipline steps can be defined to run on a single sample or to take as input more than one sample data, depending on the command line used.
+The pipeline steps can be defined to run on a single sample or to take as input more than one sample data, depending on the command line used.
 
 A typical example is running a differential expression step for example with CuffDiff. This requires to take all the output generated from the previous Cufflinks step (i.e. the gtf files) and process them to generate a unique transcripts reference (CuffCompare) and then perform the differential expression across the samples using the BAM files generated by, let's say, TopHat in a **mapping** step.
 
@@ -260,15 +260,15 @@ This is achived in two ways. First, the step definition must include a **groups*
 
 In the example above, the step includes two command lines, one for cuffcompare and the other for cuffdiff. Cuffcompare requires the transcripts.gtf for each sample, while Cuffdiff requires the BAM file for each sample, plus the output of Cuffcompare.
 
-So the two command lines need two different outputs from the same set of samples, therefore two **groups** keywords are defined as well as two placeholders ```<groups1>``` and ```<groups2>```
+So the two command lines need two different kind of files as input from the same set of samples, therefore two **groups** keywords are defined as well as two placeholders ```<groups1>``` and ```<groups2>```
 
-Once the step has been defined in the pipeline YAML, pipengine must be invoked using the **-g** parameter, to specify the samples that should be grouped together by this step:
+Once the step has been defined in the pipeline YAML, PipEngine must be invoked using the **-g** parameter, to specify the samples that should be grouped together by this step:
 
 ```shell
 pipengine -p pipeline.yml -g SampleA,SampleB SampleC,SampleB
 ```
 
-Note that the use of commas is not casual, since the **-g** parameter takes the sample names and underneath it will combine the sample name, with the 'groups' keywords and then it will substitute back the command line by keeping the samples in the same order as provided with the **-g**.
+Note that the use of commas is not casual, since the **-g** parameter specifies not only which samples should be used for this step, but also how they should be organized on the corresponding command line. The **-g** parameter takes the sample names and underneath it will combine the sample name with the 'groups' keywords and then it will substitute back the command line by keeping the samples in the same order as provided with the **-g**.
 
 The above command line will be translated, for the **cuffdiff** command line in the following:
 
@@ -280,7 +280,7 @@ and this will correspond to the way CuffDiff wants biological replicates for eac
 
 **Note**
 
-Sample groups management is complex and it's a task that can't be easily generalized since every tool as it's own way to put and organize the inputs on the command line. This approach it's not the best but works quite well, even if there are some drawbacks. For instance, as stated above, the samples groups is processed and passed to command lines as it is taken from the **-g** parameter.
+Sample groups management is complex and it's a task that can't be easily generalized since every software as it's own way to put and organize the inputs on the command line. This approach it's probably not the most elegant solution but works quite well, even if there are some drawbacks. For instance, as stated above, the samples groups is processed and passed to command lines as it is taken from the **-g** parameter.
 
 So for Cuffdiff, the presence of commas is critical to divide biological replicates from different conditions, but for Cuffcompare the commas are not needed and will raise an error on the command line. That's the reason of the:
 
@@ -318,7 +318,7 @@ By default PipEngine will generate output folders directly under the location de
 
 With this option enabled, PipEngine will also generate instructions in the job script to copy, at the end of the job, the final output folder from the local temporary directory to the final output folder (i.e. ```<output>```) and then to remove the local copy.
 
-When '--local' is used a UUID is generated for each job and prepended to the job name and to the local output folder, to avoid possible name collisions and data overwrite if more jobs with the same name (e.g. mapping) are running at the same time, writing on the same temporary location.
+When '--local' is used, a UUID is generated for each job and prepended to the job name and to the local output folder, to avoid possible name collisions and data overwrite if more jobs with the same name (e.g. mapping) are running at the same time, writing on the same temporary location.
 
 One job with multiple steps
 ---------------------------
@@ -333,11 +333,9 @@ pipengine -p pipeline.yml -s mapping mark_dup realign_target
 
 A single job script, for each sample, will be generated with all the instructions for these steps. If more than one step declares a **cpu** key, the highest cpu value will be assigned for the whole job.
 
-If the pipeline is defined with steps that are dependent one from the other, in the scenario where more steps are run together PipEngine will check if for a given step the expected input is already available. If not, it will assume the input will be found in the current working directory, because the input itself has not yet been generated.
+Each step will save outputs into a separated folder, under the ```<output>```, exactly if they were run separately. This way, if the job fails for some reason, it will be possible to check which steps were already completed and restart from there.
 
-This is because the output folders are by definition based on the job executed. So one step in one job, means one output folder with the step name, but more steps in one job means that all the outputs generated will be in the same job directory that will be named by default as the concatenation of all the steps names.
-
-Since this can be a problem when a lot of steps are run together in the same job, a '--name' parameter it's available to rename the job (and thus the corresponding output folder).
+When multiple steps are run in the same job, by default PipEngine will generate the job name as the concatenation of all the steps names. Since this could be a problem when a lot of steps are run together in the same job, a '--name' parameter it's available to rename the job in a more convinient way.
 
 :: Examples ::
 ==============
@@ -458,13 +456,17 @@ And this will be translated into the following shell script (one for each sample
 #PBS -N ff020300-mapping-mark_dup-realign_target
 #PBS -l ncpus=11
 
-mkdir -p /storage/results/sampleB/mapping-mark_dup-realign_target
-cd /storage/results/sampleB/mapping-mark_dup-realign_target
+mkdir -p /storage/results/sampleB/mapping
+cd /storage/results/sampleB/mapping
 ls /ngs_reads/sampleB/*_R1_*.gz | xargs zcat | pigz -p 10 >> R1.fastq.gz
 ls /ngs_reads/sampleB/*_R2_*.gz | xargs zcat | pigz -p 10 >> R2.fastq.gz
 /software/bwa-0.6.2/bwa sampe -P /storage/genomes/bwa_index/genome <(/software/bwa-0.6.2/bwa aln -t 4 -q 20 /genomes/bwa_index/genome R1.fastq.gz) <(/software/bwa-0.6.2/bwa aln -t 4 -q 20 /genomes/bwa_index/genome R2.fastq.gz) R1.fastq.gz R2.fastq.gz | /software/samtools view -Sb - > sampleA.bam
 rm -f R1.fastq.gz R2.fastq.gz
+mkdir -p /storage/results/sampleB/mark_dup
+cd /storage/results/sampleB/mark_dup
 java -Xmx4g -jar /software/picard-tools-1.77/MarkDuplicates.jar VERBOSITY=INFO MAX_RECORDS_IN_RAM=500000 VALIDATION_STRINGENCY=SILENT INPUT=sampleB.sorted.bam OUTPUT=sampleB.md.sort.bam METRICS_FILE=sampleB.metrics REMOVE_DUPLICATES=false
+mkdir -p /storage/results/sampleB/realign_target
+cd /storage/results/sampleB/realign_target
 java -Xmx4g -jar /software/GenomeAnalysisTk/GenomeAnalysisTk.jar -T RealignerTargetCreator -I sampleB.md.sort.bam -nt 8 -R /storage/genomes/genome.fa -o sampleB.indels.intervals
 ```
 
@@ -488,7 +490,7 @@ will become, in the shell script:
 #PBS -l host=node5
 ```
 
-If a specific queue need to be selected for sending the jobs to PBS, the ```--pbs-queue``` parameter can be used. This will pass to the ```qsub``` command the ```-q <queue name>``` taken from the command line.
+If a specific queue needs to be selected for sending the jobs to PBS, the ```--pbs-queue``` (short version **-q**) parameter can be used. This will pass to the ```qsub``` command the ```-q <queue name>``` taken from the command line.
 
 Copyright
 =========
