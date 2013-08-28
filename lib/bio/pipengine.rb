@@ -69,8 +69,9 @@ module Bio
 				step = Bio::Pipengine::Step.new(step_name,pipeline["steps"][step_name]) # parsing step instructions
 				job.add_step(step,sample) # adding step command lines to the job	
 			end
-			script = job.to_pbs(options) # converting the Job into a PBS compatible script
-			system("qsub #{script}") unless options[:dry] # submitting the job to the scheduler	
+			script = job.to_pbs(options) # converting the Job into a TORQUE::Qsub PBS compatible object
+			script.submit(options[:dry])
+			#system("qsub #{script}") unless options[:dry] # submitting the job to the scheduler	
 		end
 
 		# check if sample exists

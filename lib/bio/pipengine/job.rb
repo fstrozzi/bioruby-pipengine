@@ -68,24 +68,19 @@ module Bio
 
 			end
 
-			# convert the job object into a PBS script
+			# convert the job object into a TORQUE::Qsub object
 			def to_pbs(options)
-				header = []
-				header << "#!/bin/bash"
-				header << "#PBS -N #{self.name}"
-				header << "#PBS -q #{options[:pbs_queue]}" if options[:pbs_queue]
-				header << "#PBS -l ncpus=#{self.cpus}"
-				if options[:pbs_opts]
-					options[:pbs_opts].each do |opt|
-						header << "#PBS -l #{opt}"
-					end
-				end
-				filename = self.name+".pbs"
-				File.open(filename,"w") do |file|
-					file.write(header.join("\n")+"\n")
-					file.write(self.command_line.join("\n")+"\n")
-				end
-				return filename
+
+				TORQUE::Qsub.new do |job|
+				  # job.m = "abe"
+                  job.name = self.name
+                  job.queue = options[:pbs_queue] if options[:pbs_queue]
+                  # job.shell = '/bin/bash'
+                  job.cpus = self.cpus
+                  job.l = options[:pbs_opts] if options[:pbs_opts]
+                  job.script = self.command_line.join("\n")+"\n"
+                end
+
 			end
 
 		private

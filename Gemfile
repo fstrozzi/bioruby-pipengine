@@ -4,6 +4,7 @@ source "http://rubygems.org"
 #   gem "activesupport", ">= 2.3.5"
 gem "trollop"
 gem "colorize"
+gem "torque_rm", :git => 'git://github.com/helios/torque_rm.git'
 # Add dependencies to develop your gem here.
 # Include everything needed to run rake, tests, features, etc.
 group :development do
