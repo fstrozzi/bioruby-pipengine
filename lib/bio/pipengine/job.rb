@@ -92,7 +92,7 @@ module Bio
 			
 			# create a unique ID for each job
 			def generate_uuid
-				UUID.new.generate.split("-").slice(0,2).join("-")
+				SecureRandom.hex(5)
 			end
 			
 			# this method call other methods to perform the right substitutions into the command lines
