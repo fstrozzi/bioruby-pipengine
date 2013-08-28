@@ -16,7 +16,8 @@ module Bio
 
 			# list of samples the jobs will work on
 			samples_list = options[:samples] ? samples_file["samples"].select {|k,v| options[:samples].include? k} : samples_file["samples"]	
-			
+		
+			# check if the requested steps are multi-samples
 			run_group = check_and_run_groups(samples_file,pipeline,samples_list,options)
 			
 			unless run_group # there are no multi-sample steps, so iterate on samples and create one job per sample
@@ -76,7 +77,7 @@ module Bio
 		def self.check_samples(passed_samples,samples)
 			passed_samples.each do |sample|
 				unless samples["samples"].keys.include? sample
-					puts "Sample \"#{sample}\" does not exist in sample file!"
+					puts "Sample \"#{sample}\" does not exist in sample file!".red
 					exit
 				end
 			end
@@ -86,7 +87,7 @@ module Bio
 		def self.check_steps(passed_steps,pipeline)
 			passed_steps.each do |step|
 				unless pipeline["steps"].keys.include? step
-					puts "Step \"#{step}\" does not exist in pipeline file!"
+					puts "Step \"#{step}\" does not exist in pipeline file!".red
 					exit
 				end
 			end
