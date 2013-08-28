@@ -335,7 +335,7 @@ A single job script, for each sample, will be generated with all the instruction
 
 Each step will save outputs into a separated folder, under the ```<output>```, exactly if they were run separately. This way, if the job fails for some reason, it will be possible to check which steps were already completed and restart from there.
 
-When multiple steps are run in the same job, by default PipEngine will generate the job name as the concatenation of all the steps names. Since this could be a problem when a lot of steps are run together in the same job, a '--name' parameter it's available to rename the job in a more convinient way.
+When multiple steps are run in the same job, by default PipEngine will generate the job name as the concatenation of all the steps names. Since this could be a problem when a lot of steps are run together in the same job, a '--name' parameter it's available to rename the job in a more convenient way.
 
 :: Examples ::
 ==============
@@ -440,14 +440,6 @@ The sample YAML file is the same as the example above. Now to execute together t
 ```
 pipengine -p pipeline.yml  -f samples.yml -s mapping mark_dup realign_target
 ```
-
-When running this command line, PipEngine will raise a warning:
-
-```shell
-Warning: Directory /storage/results/sampleA/mapping not found. Assuming input will be in the CWD
-```
-
-this is normal as described in [One job with multiple steps](https://github.com/bioinformatics-ptp/bioruby-pipengine#one-job-with-multiple-steps) since the second and third steps did not find the output of the first step, as it has not yet been executed.
 
 And this will be translated into the following shell script (one for each sample):
 
