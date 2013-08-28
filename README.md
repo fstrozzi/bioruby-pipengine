@@ -44,16 +44,16 @@ pipenengine -p pipeline.yml -f samples.yml -s mapping --local /tmp
 ```
 **Optional parameters**
 ```shell
-        --samples, -l <s+>:   List of sample names to run the pipeline
-                 --dry, -d:   Dry run. Just create the job script without sending it to the batch system
-           --local, -o <s>:   Local output root folder
-  --create-samples, -c <s>:   Create samples.yml file from a Sample directory (only for CASAVA projects)
-         --groups, -g <s+>:   Group of samples to be processed by a given step
-            --name, -n <s>:   Analysis name
-       --pbs-opts, -b <s+>:   PBS options
-       --pbs-queue, -q <s>:   PBS queue
-			 --inspect_steps, -i:		Show steps 
-			 					--help, -h:   Show this message
+          --samples, -l <s+>:   List of sample names to run the pipeline
+                   --dry, -d:   Dry run. Just create the job script without submitting it to the batch system
+             --local, -o <s>:   Local output root folder
+   --create-samples, -c <s+>:   Create samples.yml file from a Sample directory (only for CASAVA projects)
+           --groups, -g <s+>:   Group of samples to be processed by a given step
+              --name, -n <s>:   Analysis name
+         --pbs-opts, -b <s+>:   PBS options
+         --pbs-queue, -q <s>:   PBS queue
+  --inspect-pipeline, -i <s>:   Show pipeline steps
+                  --help, -h:   Show this message
 ```
 
 PipEngine accepts two input files:
@@ -134,6 +134,7 @@ The step must be defined using standard keys:
 * a **cpu** key must be defined if the command line uses more than 1 CPU at runtime
 * a **group** key must be defined if the command line takes as input more than one sample (more details later)
 * a **desc** key has been added to insert a short description that will be displayed using the **-i** option of PipEngine
+
 A note on the **run** key. If a single step need more than a command line to execute the required actions, these multiple command lines must be defined as an array in YAML (see the mapping step in the above example).
 
 
