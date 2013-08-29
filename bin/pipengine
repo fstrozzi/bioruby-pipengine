@@ -14,8 +14,8 @@ options = Trollop::options do
 	opt :create_samples, "Create samples.yml file from a Sample directory (only for CASAVA projects)", :short => "c", :type => :strings
 	opt :groups, "Group of samples to be processed by a given step", :short => "g", :type => :strings
 	opt :name, "Analysis name", :short => "n", :type => :string
-	opt :pbs_opts, "PBS options", :type => :strings
-	opt :pbs_queue, "PBS queue", :type => :string
+	opt :pbs_opts, "PBS options", :type => :strings, :type => "o"
+	opt :queue, "PBS queue", :type => :string, :short => "q"
 	opt :inspect_steps, "Show steps", :short => "i"
 end
 
