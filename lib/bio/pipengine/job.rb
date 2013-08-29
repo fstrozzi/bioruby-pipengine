@@ -76,7 +76,8 @@ module Bio
                   job.name = self.name
                   job.queue = options[:pbs_queue]
                   # job.shell = '/bin/bash'
-                  job.cpus = self.cpus
+                  job.working_directory = self.output
+									job.cpus = self.cpus
                   job.l = options[:pbs_opts]
                   job.script = self.command_line.join("\n")+"\n"
                 end
