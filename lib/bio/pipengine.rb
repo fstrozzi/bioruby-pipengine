@@ -70,7 +70,8 @@ module Bio
 				job.add_step(step,sample) # adding step command lines to the job	
 			end
 			script = job.to_pbs(options) # converting the Job into a TORQUE::Qsub PBS compatible object
-			script.submit(options)
+			job_id = script.submit(options)
+			puts "#{job_id}".green unless options[:dry]
 			#system("qsub #{script}") unless options[:dry] # submitting the job to the scheduler	
 		end
 
@@ -119,6 +120,46 @@ module Bio
 						file.write "\s"+sample+":\s"+samples[sample].join(",")+"\n"	
 					end
 				end
+		end
+
+		def self.show_stats(job_ids)
+			stats = TORQUE::Qstat.new
+			info = nil
+			if job_ids.first == "all"
+				info = stats.query
+			else
+				info = stats.query :job_ids => job_ids
+			end
+			print_jobs_table info
+		end
+
+	private
+		
+		def self.print_jobs_table(jobs_info)	
+			rows = []
+			head = ["Job ID","Job Name","Node","Mem Used","Run Time","Queue","Status"]
+			head.map! {|h| h.light_red}
+			if jobs_info == ""
+				print "\n\nNo Running jobs for user: ".light_red+"#{`whoami`}".green+"\n\n"
+				exit
+			else
+				jobs_info.each do |j|
+					mem = (j[:resources_used_mem]) ? (j[:resources_used_mem].split("kb").first.to_f/1000).round(1) : "0"
+					time = (j[:total_runtime]) ? j[:total_runtime].to_f.round(2).to_s : "0"
+					node = (j[:exec_host]) ? j[:exec_host].split(".").first : "-" 
+					line = [j[:job_id].split(".").first,j[:job_name],node,"#{mem} mb","#{time} sec.",j[:queue],j[:job_state]]
+					case j[:job_state]
+						when "C" then line[-1] = "Completed"; rows << line.map {|l| l.white.on_black.underline}
+						when "Q" then line[-1] = "Queued"; rows << line.map {|l| l.light_blue}
+						when "R" then line[-1] = "Running"; rows << line.map {|l| l.green}
+						when "E" then line[-1] = "Exiting"; rows << line.map {|l| l.green.blink}
+					end
+				end
+				print "\nSummary of submitted jobs for user: ".blue+"#{jobs_info.first[:job_owner].split("@").first.green}\n\n"
+				table = Terminal::Table.new :headings => head, :rows => rows
+				puts table
+			end
+
 		end
 
 	end

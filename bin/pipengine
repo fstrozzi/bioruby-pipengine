@@ -14,13 +14,16 @@ options = Trollop::options do
 	opt :create_samples, "Create samples.yml file from a Sample directory (only for CASAVA projects)", :short => "c", :type => :strings
 	opt :groups, "Group of samples to be processed by a given step", :short => "g", :type => :strings
 	opt :name, "Analysis name", :short => "n", :type => :string
-	opt :pbs_opts, "PBS options", :type => :strings, :type => "o"
+	opt :pbs_opts, "PBS options", :type => :strings, :short => "o"
 	opt :queue, "PBS queue", :type => :string, :short => "q"
 	opt :inspect_steps, "Show steps", :short => "i"
+	opt :pbs_stats, "Show stats on running jobs", :short => "a", :type => :strings
 end
 
 if options[:create_samples]
 	Bio::Pipengine.create_samples options[:create_samples]
+elsif options[:pbs_stats]
+	Bio::Pipengine.show_stats(options[:pbs_stats])
 elsif options[:pipeline] && options[:samples_file]
 	abort("File not found: "+options[:pipeline].red) unless File.exists? options[:pipeline]
 	if options[:inspect_steps]
