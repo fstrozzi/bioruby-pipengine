@@ -71,10 +71,11 @@ module Bio
 			# convert the job object into a TORQUE::Qsub object
 			def to_pbs(options)
 
-				TORQUE::Qsub.new do |job|
+                #optional implementation
+
+				TORQUE::Qsub.new(options) do |job|
 				  # job.m = "abe"
                   job.name = self.name
-                  job.queue = options[:pbs_queue]
                   # job.shell = '/bin/bash'
                   job.working_directory = self.output
 									job.cpus = self.cpus
