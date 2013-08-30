@@ -124,7 +124,6 @@ module Bio
 
 		def self.show_stats(job_ids)
 			stats = TORQUE::Qstat.new
-			info = nil
 			if job_ids.first == "all"
 				stats.display
 			else

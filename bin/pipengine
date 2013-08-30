@@ -17,7 +17,7 @@ options = Trollop::options do
 	opt :pbs_opts, "PBS options", :type => :strings, :short => "o"
 	opt :queue, "PBS queue", :type => :string, :short => "q"
 	opt :inspect_steps, "Show steps", :short => "i"
-	opt :pbs_stats, "Show stats on running jobs", :short => "a", :type => :strings
+	opt :pbs_stats, "Show stats on running jobs", :short => "S", :type => :strings
 end
 
 if options[:create_samples]
