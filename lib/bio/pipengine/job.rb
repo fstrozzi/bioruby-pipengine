@@ -68,24 +68,16 @@ module Bio
 
 			end
 
-			# convert the job object into a PBS script
+			# convert the job object into a TORQUE::Qsub object
 			def to_pbs(options)
-				header = []
-				header << "#!/bin/bash"
-				header << "#PBS -N #{self.name}"
-				header << "#PBS -q #{options[:pbs_queue]}" if options[:pbs_queue]
-				header << "#PBS -l ncpus=#{self.cpus}"
-				if options[:pbs_opts]
-					options[:pbs_opts].each do |opt|
-						header << "#PBS -l #{opt}"
-					end
-				end
-				filename = self.name+".pbs"
-				File.open(filename,"w") do |file|
-					file.write(header.join("\n")+"\n")
-					file.write(self.command_line.join("\n")+"\n")
-				end
-				return filename
+				TORQUE::Qsub.new(options) do |job|
+					job.name = self.name
+					job.working_directory = self.output # where pbs scripts and stdout / stderr files will be saved
+					job.cpus = self.cpus
+					job.l = options[:pbs_opts]
+					job.script = self.command_line.join("\n")+"\n"
+        end
+
 			end
 
 		private
@@ -116,11 +108,13 @@ module Bio
 				
 				# for placeholders like <mapping/sample>
 				tmp_cmd.scan(/<(\S+)\/sample>/).map {|e| e.first}.each do |input_folder|
+					warn "Directory #{self.output+"/"+sample.name+"/"+input_folder} not found".magenta unless Dir.exists? self.output+"/"+sample.name+"/"+input_folder
 					tmp_cmd = tmp_cmd.gsub(/<#{input_folder}\/sample>/,self.output+"/"+sample.name+"/"+input_folder+"/"+sample.name)
 				end
 				
 				# for placeholders like <mapping/>
 				tmp_cmd.scan(/<(\S+)\/>/).map {|e| e.first}.each do |input_folder|
+					warn "Directory #{self.output+"/"+sample.name+"/"+input_folder} not found".magenta unless Dir.exists? self.output+"/"+sample.name+"/"+input_folder
 					tmp_cmd = tmp_cmd.gsub(/<#{input_folder}\/>/,self.output+"/"+sample.name+"/"+input_folder+"/")
 				end
 				return tmp_cmd
