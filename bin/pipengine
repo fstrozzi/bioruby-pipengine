@@ -12,6 +12,8 @@ global_opts = Trollop::options do
 	stop_on SUB_COMMANDS
 end
 
+Bio::Pipengine.check_config
+
 options = {}
 cmd = ARGV.shift # get the subcommand
 opts = case cmd

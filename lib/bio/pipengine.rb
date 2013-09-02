@@ -129,6 +129,7 @@ module Bio
 				end
 		end
 
+		# show running jobs information
 		def self.show_stats(job_ids)
 			stats = TORQUE::Qstat.new
 			if job_ids.first == "all"
@@ -138,6 +139,7 @@ module Bio
 			end
 		end
 
+		# delete running jobs from the scheduler
 		def self.delete_jobs(job_ids)
 			include TORQUE
 			if job_ids == ["all"]
@@ -147,6 +149,31 @@ module Bio
 			end
 		end
 
+		# check if required configuration exists
+		def self.check_config
+			unless File.exists?("#{Dir.home}/.torque_rm.yml")
+				puts "\nIt seems you are running PipEngine for the first time. Please fill in the following information:"
+				print "\nHostname or IP address of authorized server from where jobs will be submitted: ".light_blue
+				server = gets.chomp
+				print "\n"
+				print "Specify the username you will be using to connect and submit jobs [#{`whoami`.chomp}]: ".light_blue
+				username = gets.chomp
+				username = (username == "") ? `whoami`.chomp : username
+				puts "Attempting connection to the server...".green
+				path = `ssh #{username}@#{server} -t "which qsub"`.split("/qsub").first
+				unless path=~/\/\S+\/\S+/
+					warn "Connection problems detected! Please check that you are able to connect to '#{server}' as '#{username}' via ssh.".red
+				else	
+					file = File.open("#{Dir.home}/.torque_rm.yml","w")
+					file.write({:hostname => server, :path => path, :username => username}.to_yaml)
+					file.close
+					puts "First time configuration completed!".green
+					puts "It is strongly recommended to setup a password-less SSH connection to use PipEngine.".green
+					exit
+				end
+			end
 
+		end
+		
 	end
 end
