@@ -16,7 +16,7 @@ options = Trollop::options do
 	opt :name, "Analysis name", :short => "n", :type => :string
 	opt :pbs_opts, "PBS options", :type => :strings, :short => "o"
 	opt :queue, "PBS queue", :type => :string, :short => "q"
-	opt :inspect_pipeline, "Show steps", :short => "i"
+	opt :inspect_pipeline, "Show steps", :short => "i", :type => :string
 	opt :pbs_stats, "Show stats on running jobs", :short => "S", :type => :strings
 end
 
