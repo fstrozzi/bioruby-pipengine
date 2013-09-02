@@ -3,27 +3,59 @@
 $:<< File.expand_path(File.join(File.dirname(File.dirname __FILE__),"lib"))
 require 'bio-pipengine'
 
-options = Trollop::options do
-	banner "\n\nLauncher for Complex Biological Pipelines . Copyright(C) 2013 Francesco Strozzi\n\n"
-	opt :pipeline, "YAML file with pipeline and sample details", :short => "p", :type => :string, :default => "pipeline.yml"
-	opt :samples_file, "YAML file with samples name and directory paths", :short => "f", :type => :string, :default => "samples.yml"
-	opt :samples, "List of sample names to run the pipeline", :type => :strings, :short => "l"
-	opt :steps, "List of steps to be executed", :type => :strings, :short => "s"
-  opt :dry,"Dry run. Just create the job script without submitting it to the batch system", :short => "d"
-	opt :local, "Local output root folder", :type => :string
-	opt :create_samples, "Create samples.yml file from a Sample directory (only for CASAVA projects)", :short => "c", :type => :strings
-	opt :groups, "Group of samples to be processed by a given step", :short => "g", :type => :strings
-	opt :name, "Analysis name", :short => "n", :type => :string
-	opt :pbs_opts, "PBS options", :type => :strings, :short => "o"
-	opt :queue, "PBS queue", :type => :string, :short => "q"
-	opt :inspect_pipeline, "Show steps", :short => "i", :type => :string
-	opt :pbs_stats, "Show stats on running jobs", :short => "S", :type => :strings
+banner_text = "\nLauncher for Complex Biological Pipelines . Copyright(C) 2013 Francesco Strozzi\n\n" 
+version_text = File.read File.expand_path(File.join(File.dirname(File.dirname __FILE__),"VERSION"))
+SUB_COMMANDS = %w(run stats)
+global_opts = Trollop::options do
+	banner "\nLauncher for Complex Biological Pipelines . Copyright(C) 2013 Francesco Strozzi\n\n"
+	version "PipEngine v#{version_text}"
+	stop_on SUB_COMMANDS
 end
 
+options = {}
+cmd = ARGV.shift # get the subcommand
+opts = case cmd
+when "run" 	
+	options[:run] = true
+	Trollop::options do
+		opt :pipeline, "YAML file with pipeline and sample details", :short => "p", :type => :string, :default => "pipeline.yml"
+		opt :samples_file, "YAML file with samples name and directory paths", :short => "f", :type => :string, :default => "samples.yml"
+		opt :samples, "List of sample names to run the pipeline", :type => :strings, :short => "l"
+		opt :steps, "List of steps to be executed", :type => :strings, :short => "s"
+		opt :dry,"Dry run. Just create the job script without submitting it to the batch system", :short => "d"
+		opt :local, "Local output root folder", :type => :string
+		opt :create_samples, "Create samples.yml file from a Sample directory (only for CASAVA projects)", :short => "c", :type => :strings
+		opt :groups, "Group of samples to be processed by a given step", :short => "g", :type => :strings
+		opt :name, "Analysis name", :short => "n", :type => :string
+		opt :pbs_opts, "PBS options", :type => :strings, :short => "o"
+		opt :queue, "PBS queue", :type => :string, :short => "q"
+		opt :inspect_pipeline, "Show steps", :short => "i", :type => :string
+	end
+when "stats"
+	options[:stats] = true
+	Trollop::options do
+		opt :job_id, "Search submitted jobs by Job ID", :type => :strings, :short => "i"
+		opt :job_name, "Search submitted jobs by Job Name", :type => :strings, :short => "n"
+	end
+else
+	puts banner_text
+	puts "List of available commands:\n\trun\tSubmit pipelines to the job scheduler\n\tstats\tShow statistics and interact with running jobs\n"
+	exit
+end
+
+
+options = options.merge opts
 if options[:create_samples]
 	Bio::Pipengine.create_samples options[:create_samples]
-elsif options[:pbs_stats]
-	Bio::Pipengine.show_stats(options[:pbs_stats])
+elsif options[:stats]
+	if options[:job_id] 
+		Bio::Pipengine.show_stats(options[:job_id])
+	elsif options[:job_name]
+		warn "Not yet implemented"
+		exit
+	else
+		Bio::Pipengine.show_stats(["all"])
+	end
 elsif options[:pipeline] && options[:samples_file]
 	if options[:inspect_pipeline]
 		Bio::Pipengine.inspect_steps(options[:inspect_pipeline])
@@ -34,8 +66,6 @@ elsif options[:pipeline] && options[:samples_file]
 		abort("Please provide a valid step name with the --step parameter".red) unless options[:steps]
 		Bio::Pipengine.run(options)
 	end
-else
-	puts "Check available options: #{$0} -h"
 end
 
 
