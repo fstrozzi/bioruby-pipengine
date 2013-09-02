@@ -47,9 +47,11 @@ GEM
       drydock
       storable
     terminal-table (1.4.5)
-    torque_rm (0.0.0)
+    torque_rm (0.1.0)
+      colorize
       parslet
       rye
+      terminal-table
     trollop (2.0)
 
 PLATFORMS
@@ -63,5 +65,5 @@ DEPENDENCIES
   rdoc (~> 3.12)
   shoulda
   terminal-table
-  torque_rm
+  torque_rm (>= 0.1.0)
   trollop
