@@ -5,7 +5,7 @@ require 'bio-pipengine'
 
 banner_text = "\nLauncher for Complex Biological Pipelines . Copyright(C) 2013 Francesco Strozzi\n\n" 
 version_text = File.read File.expand_path(File.join(File.dirname(File.dirname __FILE__),"VERSION"))
-SUB_COMMANDS = %w(run stats)
+SUB_COMMANDS = %w(run jobs)
 global_opts = Trollop::options do
 	banner "\nLauncher for Complex Biological Pipelines . Copyright(C) 2013 Francesco Strozzi\n\n"
 	version "PipEngine v#{version_text}"
@@ -31,15 +31,16 @@ when "run"
 		opt :queue, "PBS queue", :type => :string, :short => "q"
 		opt :inspect_pipeline, "Show steps", :short => "i", :type => :string
 	end
-when "stats"
-	options[:stats] = true
+when "jobs"
+	options[:jobs] = true
 	Trollop::options do
 		opt :job_id, "Search submitted jobs by Job ID", :type => :strings, :short => "i"
 		opt :job_name, "Search submitted jobs by Job Name", :type => :strings, :short => "n"
+		opt :delete, "Delete submitted jobs ('all' to erase everything or type one or more job IDs)", :short => "d", :type => :strings
 	end
 else
 	puts banner_text
-	puts "List of available commands:\n\trun\tSubmit pipelines to the job scheduler\n\tstats\tShow statistics and interact with running jobs\n"
+	puts "List of available commands:\n\trun\tSubmit pipelines to the job scheduler\n\tjobs\tShow statistics and interact with running jobs\n"
 	exit
 end
 
@@ -47,12 +48,26 @@ end
 options = options.merge opts
 if options[:create_samples]
 	Bio::Pipengine.create_samples options[:create_samples]
-elsif options[:stats]
+elsif options[:jobs]
 	if options[:job_id] 
 		Bio::Pipengine.show_stats(options[:job_id])
 	elsif options[:job_name]
 		warn "Not yet implemented"
 		exit
+	elsif options[:delete]
+		if options[:delete].empty?
+			warn "Provide one or more Job IDs or write 'all' to delete all your running jobs".red
+			exit
+		end
+		puts "Warning: this will delete the following running jobs: ".light_blue + "#{options[:delete].join(",")}".green
+		print "Are you sure? (y|n):"
+		answer = gets.chomp
+		if answer == "y"
+			Bio::Pipengine.delete_jobs(options[:delete])
+		else
+			puts "Aborting..."
+			exit
+		end
 	else
 		Bio::Pipengine.show_stats(["all"])
 	end

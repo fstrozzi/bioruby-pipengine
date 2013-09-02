@@ -131,6 +131,15 @@ module Bio
 			end
 		end
 
+		def self.delete_jobs(job_ids)
+			include TORQUE
+			if job_ids.first == "all"
+				Qdel.rm_all
+			else 
+				job_ids.each {|job_id| Qdel.rm job_id}
+			end
+		end
+
 
 	end
 end
