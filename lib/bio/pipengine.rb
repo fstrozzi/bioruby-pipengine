@@ -107,14 +107,21 @@ module Bio
 			end
 			puts "\n"
 		end
-		# create the samples.yml file
-
-		def self.create_samples(sample_dirs)
+		
+		# create the samples.yml file (CASAVA ONLY!)
+		def self.create_samples(dir)
 				File.open("samples.yml","w") do |file|
 					file.write "resources:\n\soutput:\n\nsamples:\n"
 					samples = Hash.new {|hash,key| hash[key] = []}
-					sample_dirs.each do |path|
-						Dir.glob(path+"/*").each {|s| samples[s.split("/")[-1]] << s}
+					dir.each do |path|
+						projects = Dir.glob(path+"/*").select {|folders| folders.split("/")[-1] =~/Project_/}
+						unless projects.empty?
+							projects.each do |project_folder|
+								Dir.glob(project_folder+"/*").each {|s| samples[s.split("/")[-1]] << s}
+							end
+						else
+							Dir.glob(path+"/*").each {|s| samples[s.split("/")[-1]] << s}
+						end
 					end
 					samples.each_key do |sample|
 						file.write "\s"+sample+":\s"+samples[sample].join(",")+"\n"	
@@ -133,7 +140,7 @@ module Bio
 
 		def self.delete_jobs(job_ids)
 			include TORQUE
-			if job_ids.first == "all"
+			if job_ids == ["all"]
 				Qdel.rm_all
 			else 
 				job_ids.each {|job_id| Qdel.rm job_id}
