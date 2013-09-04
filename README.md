@@ -39,11 +39,11 @@ List of available commands:
 	jobs	Show statistics and interact with running jobs
 ```
 
-
+Since PipEngine uses the TORQUE-RM gem to interact with the job scheduler, at the first run PipEngine will ask few questions to prepare the required configuration file (e.g. provide IP address and username to connect via SSH to the PBS Server / Masternode).
 
 Command line for JOBS mode
 --------------------------
-With this mode, PipEngine will interact with the job scheduler (Torque/PBS for now) and will perform searches on submitted jobs as well as allowing to delete the jobs.
+With this mode, PipEngine will interact with the job scheduler (Torque/PBS for now) and will allow performing searches on submitted jobs and send delete commands to remove jobs from the scheduler.
 
 ```shell
 > pipengine jobs [options]
@@ -200,7 +200,7 @@ Generally, the tags defined under the samples **resources** are dependent on the
 
 The inputs in the steps defined in the pipeline YAML are expressed by the ```<sample>``` placeholder that will be substituted with a sample name and the ```<sample_path>```, which will be changed with the location where initial data (i.e. raw sequencing reads) are stored for that particular sample. Both this information are provided in the sample YAML file.
 
-The ```<output>``` placeholder is a generic one to define the root location for the pipeline outputs. This parameter is also defined in the samples YAML.
+The ```<output>``` placeholder is a generic one to define the root location for the pipeline outputs. This parameter is also defined in the samples YAML. By default, PipEngine will write jobs scripts and will save stdout and stderr files from PBS in this folder. 
 
 By convention, each sample output is saved under a folder with the sample name and each step is saved in a sub-folder with the step name.
 
