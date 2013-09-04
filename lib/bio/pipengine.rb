@@ -153,13 +153,14 @@ module Bio
 		def self.check_config
 			unless File.exists?("#{Dir.home}/.torque_rm.yaml")
 				ARGV.clear
+				current_user = Etc.getlogin
 				puts "\nIt seems you are running PipEngine for the first time. Please fill in the following information:"
 				print "\nHostname or IP address of authorized server from where jobs will be submitted: ".light_blue
 				server = gets.chomp
 				print "\n"
-				print "Specify the username you will be using to connect and submit jobs [#{`whoami`.chomp}]: ".light_blue
+				print "Specify the username you will be using to connect and submit jobs [#{current_user}]: ".light_blue
 				username = gets.chomp
-				username = (username == "") ? `whoami`.chomp : username
+				username = (username == "") ? current_user : username
 				puts "Attempting connection to the server...".green
 				path = `ssh #{username}@#{server} -t "which qsub"`.split("/qsub").first
 				unless path=~/\/\S+\/\S+/
