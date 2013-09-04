@@ -30,9 +30,42 @@ PipEngine is best suited for NGS pipelines, but it can be used for any kind of p
 :: Usage ::
 ===========
 
+PipEngine it's divided into two main sections:
+
+```shell
+> pipengine -h
+List of available commands:
+	run		Submit pipelines to the job scheduler
+	jobs	Show statistics and interact with running jobs
+```
+
+
+
+Command line for JOBS mode
+--------------------------
+With this mode, PipEngine will interact with the job scheduler (Torque/PBS for now) and will perform searches on submitted jobs as well as allowing to delete the jobs.
+
+```shell
+> pipengine jobs [options]
+```
+
+
+**Parameters**
+```shell
+    --job-id, -i <s+>:   Search submitted jobs by Job ID
+  --job-name, -n <s+>:   Search submitted jobs by Job Name
+    --delete, -d <s+>:   Delete submitted jobs ('all' to erase everything or type one or more job IDs)
+```
+
+
+Command line for RUN mode
+-------------------------
+
+With this mode, PipEngine will submit pipeline jobs to the scheduler.
+
 **Command line**
 ```shell
-pipenengine -p pipeline.yml -f samples.yml -s mapping --local /tmp
+> pipenengine run -p pipeline.yml -f samples.yml -s mapping --tmp /tmp
 ```
 
 **Mandatory parameters**
@@ -46,7 +79,7 @@ pipenengine -p pipeline.yml -f samples.yml -s mapping --local /tmp
 ```shell
           --samples, -l <s+>:   List of sample names to run the pipeline
                    --dry, -d:   Dry run. Just create the job script without submitting it to the batch system
-             --local, -o <s>:   Local output root folder
+             --tmp, -t <s>:   	Temporary output folder
    --create-samples, -c <s+>:   Create samples.yml file from a Sample directory (only for CASAVA projects)
            --groups, -g <s+>:   Group of samples to be processed by a given step
               --name, -n <s>:   Analysis name
@@ -309,16 +342,16 @@ The **-d** parameter lets you create the runnable shell scripts without submitti
 
 Use it also to learn how the placeholders works, especially the dependency placeholders (e.g. ```<mapping/sample>```) and to cross-check that all the placeholders in the pipeline command lines were substituted correctly before submitting the jobs.
 
-Local output folder
+Temporary output folder
 -------------------
 
-By using the '--local' option, PipEngine will generate a job script (for each sample) that will save all the output files or folders for a particular step in a local directory (e.g. /tmp).
+By using the '--tmp' option, PipEngine will generate a job script (for each sample) that will save all the output files or folders for a particular step in a directory (e.g. /tmp) that is different from the one provided with the ```<output>```.
 
-By default PipEngine will generate output folders directly under the location defined by the ```<ouput>``` tag in the Sample YAML. The local solution instead can be useful when we don't want to save directly to the final location (e.g a slow network storage) or we don't want to keep all the intermediate files but just the final ones.
+By default PipEngine will generate output folders directly under the location defined by the ```<ouput>``` tag in the Sample YAML. The --tmp solution instead can be useful when we don't want to save directly to the final location (e.g maybe a slower network storage) or we don't want to keep all the intermediate files but just the final ones.
 
-With this option enabled, PipEngine will also generate instructions in the job script to copy, at the end of the job, the final output folder from the local temporary directory to the final output folder (i.e. ```<output>```) and then to remove the local copy.
+With this option enabled, PipEngine will also generate instructions in the job script to copy, at the end of the job, all the outputs from the temporary directory to the final output folder (i.e. ```<output>```) and then to remove the temporary copy.
 
-When '--local' is used, a UUID is generated for each job and prepended to the job name and to the local output folder, to avoid possible name collisions and data overwrite if more jobs with the same name (e.g. mapping) are running at the same time, writing on the same temporary location.
+When '--tmp' is used, a UUID is generated for each job and prepended to the job name and to the temporary output folder, to avoid possible name collisions and data overwrite if more jobs with the same name (e.g. mapping) are running and writing to the same temporary location.
 
 One job with multiple steps
 ---------------------------
