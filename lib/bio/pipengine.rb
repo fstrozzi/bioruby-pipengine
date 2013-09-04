@@ -58,7 +58,7 @@ module Bio
 			end			
 			# creating the Job object
 			job = Bio::Pipengine::Job.new(job_name)
-			job.local = options[:local]
+			job.local = options[:tmp]
 			job.add_resources pipeline["resources"]
 			job.add_resources samples_file["resources"]
 			# setting sample groups either by cli option (if any) or by taking all available samples

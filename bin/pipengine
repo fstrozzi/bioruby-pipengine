@@ -6,26 +6,23 @@ require 'bio-pipengine'
 banner_text = "\nLauncher for Complex Biological Pipelines . Copyright(C) 2013 Francesco Strozzi\n\n" 
 version_text = File.read File.expand_path(File.join(File.dirname(File.dirname __FILE__),"VERSION"))
 SUB_COMMANDS = %w(run jobs)
-global_opts = Trollop::options do
-	banner "\nLauncher for Complex Biological Pipelines . Copyright(C) 2013 Francesco Strozzi\n\n"
-	version "PipEngine v#{version_text}"
-	stop_on SUB_COMMANDS
-end
+
 
 Bio::Pipengine.check_config
 
 options = {}
-cmd = ARGV.shift # get the subcommand
+cmd = ARGV.first # get the subcommand
 opts = case cmd
 when "run" 	
 	options[:run] = true
+	ARGV.shift
 	Trollop::options do
 		opt :pipeline, "YAML file with pipeline and sample details", :short => "p", :type => :string, :default => "pipeline.yml"
 		opt :samples_file, "YAML file with samples name and directory paths", :short => "f", :type => :string, :default => "samples.yml"
 		opt :samples, "List of sample names to run the pipeline", :type => :strings, :short => "l"
 		opt :steps, "List of steps to be executed", :type => :strings, :short => "s"
 		opt :dry,"Dry run. Just create the job script without submitting it to the batch system", :short => "d"
-		opt :local, "Local output root folder", :type => :string
+		opt :tmp, "Temporary output folder", :type => :strings
 		opt :create_samples, "Create samples.yml file from a Sample directory (only for CASAVA projects)", :short => "c", :type => :strings
 		opt :groups, "Group of samples to be processed by a given step", :short => "g", :type => :strings
 		opt :name, "Analysis name", :short => "n", :type => :string
@@ -34,16 +31,22 @@ when "run"
 		opt :inspect_pipeline, "Show steps", :short => "i", :type => :string
 	end
 when "jobs"
+	ARGV.shift
 	options[:jobs] = true
 	Trollop::options do
 		opt :job_id, "Search submitted jobs by Job ID", :type => :strings, :short => "i"
 		opt :job_name, "Search submitted jobs by Job Name", :type => :strings, :short => "n"
 		opt :delete, "Delete submitted jobs ('all' to erase everything or type one or more job IDs)", :short => "d", :type => :strings
 	end
-else
+when "-h"
 	puts banner_text
 	puts "List of available commands:\n\trun\tSubmit pipelines to the job scheduler\n\tjobs\tShow statistics and interact with running jobs\n"
 	exit
+else
+	global_opts = Trollop::options do
+		banner banner_text
+		version "PipEngine v#{version_text}"
+	end
 end
 
 
