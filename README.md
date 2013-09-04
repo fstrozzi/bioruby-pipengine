@@ -39,7 +39,7 @@ List of available commands:
 	jobs	Show statistics and interact with running jobs
 ```
 
-Since PipEngine uses the TORQUE-RM gem to interact with the job scheduler, at the first run PipEngine will ask few questions to prepare the required configuration file (e.g. provide IP address and username to connect via SSH to the PBS Server / Masternode).
+Since PipEngine uses the [TORQUE-RM](https://github.com/helios/torque_rm) gem to interact with the job scheduler, at the first run PipEngine will ask few questions to prepare the required configuration file (e.g. provide IP address and username to connect via SSH to the PBS Server / Masternode).
 
 Command line for JOBS mode
 --------------------------
@@ -338,7 +338,7 @@ If not invoked with the **-d** option (dry-run) PipEngine will directly submit t
 Dry Run
 -------
 
-The **-d** parameter lets you create the runnable shell scripts without submitting them to PBS. Use it often to check that the pipeline that will be executed is correct and it is doing what you thought.
+The **-d** parameter lets you create the runnable shell scripts without submitting them to PBS. Use it often to check that the pipeline that will be executed is correct and it is doing what you thought. The runnable scripts are saved by default in the ```<output>``` directory.
 
 Use it also to learn how the placeholders works, especially the dependency placeholders (e.g. ```<mapping/sample>```) and to cross-check that all the placeholders in the pipeline command lines were substituted correctly before submitting the jobs.
 
