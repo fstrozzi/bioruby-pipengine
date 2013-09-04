@@ -151,7 +151,8 @@ module Bio
 
 		# check if required configuration exists
 		def self.check_config
-			unless File.exists?("#{Dir.home}/.torque_rm.yml")
+			unless File.exists?("#{Dir.home}/.torque_rm.yaml")
+				ARGV.clear
 				puts "\nIt seems you are running PipEngine for the first time. Please fill in the following information:"
 				print "\nHostname or IP address of authorized server from where jobs will be submitted: ".light_blue
 				server = gets.chomp
@@ -164,7 +165,7 @@ module Bio
 				unless path=~/\/\S+\/\S+/
 					warn "Connection problems detected! Please check that you are able to connect to '#{server}' as '#{username}' via ssh.".red
 				else	
-					file = File.open("#{Dir.home}/.torque_rm.yml","w")
+					file = File.open("#{Dir.home}/.torque_rm.yaml","w")
 					file.write({:hostname => server, :path => path, :username => username}.to_yaml)
 					file.close
 					puts "First time configuration completed!".green
