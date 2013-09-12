@@ -31,8 +31,9 @@ module Bio
 		# handle steps that run on multiple samples (i.e. sample groups job)
 		def self.check_and_run_groups(samples_file,pipeline,samples_list,options)
 			step_groups = options[:steps].map {|s| Bio::Pipengine::Step.new(s,pipeline["steps"][s]).is_group?}
+			
 			if step_groups.include? false
-				if step_groups.size > 1
+				if step_groups.uniq.size > 1
 					puts "\nAbort! You are trying to run both multi-samples and single sample steps in the same job".red
 					exit
 				else
@@ -167,7 +168,7 @@ module Bio
 					warn "Connection problems detected! Please check that you are able to connect to '#{server}' as '#{username}' via ssh.".red
 				else	
 					file = File.open("#{Dir.home}/.torque_rm.yaml","w")
-					file.write({:hostname => server, :path => path, :username => username}.to_yaml)
+					file.write({:hostname => server, :path => path, :user => username}.to_yaml)
 					file.close
 					puts "First time configuration completed!".green
 					puts "It is strongly recommended to setup a password-less SSH connection to use PipEngine.".green
