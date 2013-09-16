@@ -121,7 +121,7 @@ module Bio
 								Dir.glob(project_folder+"/*").each {|s| samples[s.split("/")[-1]] << s}
 							end
 						else
-							Dir.glob(path+"/*").each {|s| samples[s.split("/")[-1]] << s}
+							Dir.glob(path+"/*").each {|s| samples[s.split("/")[-1]] << s if Dir.exists? s}
 						end
 					end
 					samples.each_key do |sample|
