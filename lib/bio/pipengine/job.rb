@@ -6,7 +6,7 @@ module Bio
 			# a Job object holds information on a job to be submitted
 			# samples_groups and samples_obj are used to store information in case of steps that require to combine info
 			# from multiple samples
-			attr_accessor :name, :cpus, :resources, :command_line, :local, :samples_groups, :samples_obj
+			attr_accessor :name, :cpus, :resources, :command_line, :local, :samples_groups, :samples_obj, :custom_output
 			def initialize(name)
 				@name = generate_uuid + "-" + name
 				@command_line = []
@@ -25,16 +25,18 @@ module Bio
 			# add all the command lines for a given step
 			def add_step(step,sample)
 				
+
 				# setting job working directory
 				working_dir = ""	
 				if self.local 
 					working_dir = self.local+"/"+self.name
 				else
 					working_dir = self.output
+					folder = (self.custom_output) ? self.custom_output : step.name
 					if step.is_group?
-						working_dir += "/#{step.name}"
+						working_dir += "/#{folder}"
 					else
-						working_dir += "/#{sample.name}/#{step.name}"
+						working_dir += "/#{sample.name}/#{folder}"
 					end
 				end
 
@@ -56,13 +58,14 @@ module Bio
 					self.command_line << generate_cmd_line(step.run,sample,step)
 				end
 			
-				# check if a local (i.e. different from 'output') directory is set
+				# check if a temporary (i.e. different from 'output') directory is set
 				if self.local
 					final_output = ""
+					folder = (self.custom_output) ? self.custom_output : step.name
 					if step.is_group?
-						final_output = self.output+"/#{step.name}"
+						final_output = self.output+"/#{folder}"
 					else
-						final_output = self.output+"/#{sample.name}/#{step.name}"
+						final_output = self.output+"/#{sample.name}/#{folder}"
 					end
 					self.command_line << "mkdir -p #{final_output}"
 					self.command_line << "cp -r #{working_dir}/* #{final_output}"
@@ -104,8 +107,10 @@ module Bio
 			# perform substitutions on all the placeholders
 			def sub_placeholders(cmd,sample,step=nil)	
 				tmp_cmd = cmd.gsub(/<sample>/,sample.name)
-				tmp_cmd = tmp_cmd.gsub(/<sample_path>/,sample.path.join(" "))
-				
+				if tmp_cmd =~/<sample_path>/
+					sample_path_instruction = (tmp_cmd.scan(/<sample_path>(\S+)/).map {|e| e.first})
+					tmp_cmd.gsub!(/<sample_path>\S+/,(sample.path.map {|s| s+sample_path_instruction.first}).join("\s"))
+				end
 				# for resourcers and cpus
 				tmp_cmd = sub_resources_and_cpu(tmp_cmd,step)
 				
