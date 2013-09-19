@@ -1,44 +1,36 @@
 
-pipeline: resequencing
+pipeline: gbs
 
 resources:
   fastqc: /storage/software/FastQC/fastqc
-  bwa: /storage/software/bwa-0.6.2/bwa
-  gatk: /storage/software/gatk-lite/GenomeAnalysisTk.jar
+  bwa: /storage/software/bwa-0.7.5a/bwa
   samtools: /storage/software/samtools
-  samsort: /storage/software/picard-tools-1.77/SortSam.jar
-  mark_dup: /storage/software/picard-tools-1.77/MarkDuplicates.jar
-  bam: /storage/software/bam 
+  bgzip: /storage/software/tabix-0.2.6/bgzip
+  tabix: /storage/software/tabix-0.2.6/tabix
+  bcftools: /storage/software/bcftools
+  vcfutils: /storage/software/vcfutils.pl
+  adapters: /storage/software/Trimmomatic-0.30/adapters/TruSeq3-PE.fa
+  trimmomatic: /storage/software/Trimmomatic-0.30/trimmomatic-0.30.jar
+  gatk_jar: /storage/software/GenomeAnalysisTK-2.7-2-g6bda569/GenomeAnalysisTK.jar
 
-step:
-  quality:
-    run: <fastqc> --casava <sample_path>/*.gz -o <output> --noextract -nt <cpu>
-    cpu: 8
-
+  
   mapping:
+    desc: Run BWA MEM and generates a sorted BAM file
     run:
-     - ls <sample_path>/*_R1_*.gz | xargs zcat | pigz -p 10 >> R1.fastq.gz
-     - ls <sample_path>/*_R2_*.gz | xargs zcat | pigz -p 10 >> R2.fastq.gz
-     - <bwa> sampe -P <index> <(<bwa> aln -t <cpu> -q 20 <index> R1.fastq.gz) <(<bwa> aln -t <cpu> -q 20 <index> R2.fastq.gz) R1.fastq.gz R2.fastq.gz | <samtools> view -Su - | java -Xmx4g -jar /storage/software/picard-tools-1.77/AddOrReplaceReadGroups.jar I=/dev/stdin O=<sample>.sorted.bam SO=coordinate LB=<pipeline> PL=illumina PU=PU SM=<sample> TMP_DIR=/data/tmp CREATE_INDEX=true MAX_RECORDS_IN_RAM=1000000
-     - rm -f R1.fastq.gz R2.fastq.gz
-    cpu: 11
-    
-  mark_dup:
-    run: java -Xmx4g -jar <mark_dup> VERBOSITY=INFO MAX_RECORDS_IN_RAM=500000 VALIDATION_STRINGENCY=SILENT INPUT=<mapping/>sample.sorted.bam OUTPUT=<sample>.md.sort.bam METRICS_FILE=<sample>.metrics REMOVE_DUPLICATES=false
-
-  realign_target:
-    run: java -Xmx4g -jar <gatk> -T RealignerTargetCreator -I <mark_dup/sample>.md.sort.bam -nt <cpu> -R <genome> -o <sample>.indels.intervals
+     - <bwa> mem -t <cpu> -R '@RG\tID:<flowcell>\tLB:<sample>\tPL:ILLUMINA\tPU:<flowcell>\tCN:PTP\tSM:<sample>' <index> <trim/sample>.trim.fastq | <samtools> view -bS - > <sample>.bam
+     - <samtools> sort -@ <cpu> <sample>.bam <sample>.sort
+     - rm -f <sample>.bam
     cpu: 8
 
-  realign:
-    run: java -Xmx4g -jar <gatk> -T IndelRealigner -LOD 0.4 -model USE_READS --disable_bam_indexing --target_intervals <realign_target/sample>.indels.intervals -R <genome> -I <mark_dup/sample>.md.sort.bam -o <sample>.realigned.bam
+  _index:
+    desc: Make BAM index
+    run: <samtools> index <mapping/sample>.sort.bam
 
-  fixtags:
-    run: <samtools> calmd -r -E -u <realign/sample>.realigned.bam <genome> | <bam> squeeze --in -.ubam --out <sample>.final.bam --rmTags 'XM:i;XG:i;XO:i' --keepDups
-
-  bam_index:
-    run: <samtools> index <fixtags/sample>.final.bam
-
-  clean:
-    run: ls | grep -v final | xargs rm -fr
-
+  gatk:
+    desc: Run GATK to perform SNP and InDel calling, then compress and index the VCF file
+    multi: -I <realign/sample>.final.bam
+    run: 
+     - java -Xmx4g -jar <gatk_jar> -T UnifiedGenotyper <multi> -R <genome> -mbq 30 -o all.gatk.vcf -nt <cpu> -glm BOTH
+     - <bgzip> all.gatk.vcf
+     - <tabix> -p vcf all.gatk.vcf.gz
+    cpu: 20

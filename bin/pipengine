@@ -24,7 +24,7 @@ when "run"
 		opt :dry,"Dry run. Just create the job script without submitting it to the batch system", :short => "d"
 		opt :tmp, "Temporary output folder", :type => :string, :short => "t"
 		opt :create_samples, "Create samples.yml file from a Sample directory (only for CASAVA projects)", :short => "c", :type => :strings
-		opt :groups, "Group of samples to be processed by a given step", :short => "g", :type => :strings
+		opt :multi, "List of samples to be processed by a given step (the order matters)", :short => "m", :type => :strings
 		opt :name, "Analysis name", :short => "n", :type => :string
 		opt :output_dir, "Output directory (override standard output directory names)", :short => "o", :type => :string
 		opt :pbs_opts, "PBS options", :type => :strings, :short => "b"
@@ -82,8 +82,8 @@ elsif options[:pipeline] && options[:samples_file]
 		Bio::Pipengine.inspect_steps(options[:inspect_pipeline])
 		exit
 	else
-		abort("File not found: "+options[:pipeline].red) unless File.exists? options[:pipeline]
-		abort("File not found: "+options[:samples_file].red) unless File.exists? options[:samples_file]
+		abort("File not found: #{options[:pipeline]}".red) unless File.exists? options[:pipeline]
+		abort("File not found: #{options[:samples_file]}".red) unless File.exists? options[:samples_file]
 		abort("Please provide a valid step name with the --step parameter".red) unless options[:steps]
 		Bio::Pipengine.run(options)
 	end

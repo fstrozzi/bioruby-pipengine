@@ -18,9 +18,9 @@ module Bio
 			samples_list = options[:samples] ? samples_file["samples"].select {|k,v| options[:samples].include? k} : samples_file["samples"]	
 		
 			# check if the requested steps are multi-samples
-			run_group = check_and_run_groups(samples_file,pipeline,samples_list,options)
+			run_multi = check_and_run_multi(samples_file,pipeline,samples_list,options)
 			
-			unless run_group # there are no multi-sample steps, so iterate on samples and create one job per sample
+			unless run_multi # there are no multi-sample steps, so iterate on samples and create one job per sample
 				samples_list.each_key do |sample_name|
 					sample = Bio::Pipengine::Sample.new(sample_name,samples_list[sample_name])
 					create_job(samples_file,pipeline,samples_list,options,sample)
@@ -29,11 +29,11 @@ module Bio
 		end
 
 		# handle steps that run on multiple samples (i.e. sample groups job)
-		def self.check_and_run_groups(samples_file,pipeline,samples_list,options)
-			step_groups = options[:steps].map {|s| Bio::Pipengine::Step.new(s,pipeline["steps"][s]).is_group?}
+		def self.check_and_run_multi(samples_file,pipeline,samples_list,options)
+			step_multi = options[:steps].map {|s| Bio::Pipengine::Step.new(s,pipeline["steps"][s]).is_multi?}
 			
-			if step_groups.include? false
-				if step_groups.uniq.size > 1
+			if step_multi.include? false
+				if step_multi.uniq.size > 1
 					puts "\nAbort! You are trying to run both multi-samples and single sample steps in the same job".red
 					exit
 				else
@@ -64,7 +64,7 @@ module Bio
 			job.add_resources pipeline["resources"]
 			job.add_resources samples_file["resources"]
 			# setting sample groups either by cli option (if any) or by taking all available samples
-			job.samples_groups = (options[:groups]) ? options[:groups] : samples_list.keys
+			job.multi_samples = (options[:multi]) ? options[:multi] : samples_list.keys
 			job.samples_obj = sample if sample.kind_of? Hash
 			# cycling through steps and add command lines to the job
 			options[:steps].each do |step_name|

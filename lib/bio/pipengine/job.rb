@@ -6,7 +6,7 @@ module Bio
 			# a Job object holds information on a job to be submitted
 			# samples_groups and samples_obj are used to store information in case of steps that require to combine info
 			# from multiple samples
-			attr_accessor :name, :cpus, :resources, :command_line, :local, :samples_groups, :samples_obj, :custom_output
+			attr_accessor :name, :cpus, :resources, :command_line, :local, :multi_samples, :samples_obj, :custom_output
 			def initialize(name)
 				@name = generate_uuid + "-" + name
 				@command_line = []
@@ -33,7 +33,7 @@ module Bio
 				else
 					working_dir = self.output
 					folder = (self.custom_output) ? self.custom_output : step.name
-					if step.is_group?
+					if step.is_multi?
 						working_dir += "/#{folder}"
 					else
 						working_dir += "/#{sample.name}/#{folder}"
@@ -62,7 +62,7 @@ module Bio
 				if self.local
 					final_output = ""
 					folder = (self.custom_output) ? self.custom_output : step.name
-					if step.is_group?
+					if step.is_multi?
 						final_output = self.output+"/#{folder}"
 					else
 						final_output = self.output+"/#{sample.name}/#{folder}"
@@ -95,9 +95,9 @@ module Bio
 			
 			# this method call other methods to perform the right substitutions into the command lines
 			def generate_cmd_line(cmd,sample,step)
-				if step.is_group? # if is a sample groups steps call a different method
-					set_groups_cmd(step,self.samples_groups)
-					cmd = sub_groups(cmd,step)
+				if step.is_multi? # if is a multi samples step call a different method
+					set_multi_cmd(step,self.multi_samples)
+					cmd = sub_multi(cmd,step)
 				else
 					cmd = sub_placeholders(cmd,sample,step) # normal step, perform usual substitutions
 				end
@@ -139,51 +139,51 @@ module Bio
 			end
 	
 
-			# creates actual groups command lines to be substituted where <groups> placeholders are found
-			def set_groups_cmd(step,sample_groups)
-				if step.groups_def.kind_of? Array # in case of multiple groups command line
-					step.groups_cmd = []
-					step.groups_def.each do |g_def|
-						step.groups_cmd << generate_groups_cmd(g_def,sample_groups)
+			# creates actual multi-samples command lines to be substituted where <multi> placeholders are found
+			def set_multi_cmd(step,multi_samples)
+				if step.multi_def.kind_of? Array # in case of many multi-samples command lines
+					step.multi_cmd = []
+					step.multi_def.each do |m_def|
+						step.multi_cmd << generate_multi_cmd(m_def,multi_samples)
 					end
 				else
-					step.groups_cmd = generate_groups_cmd(step.groups_def,sample_groups)
+					step.multi_cmd = generate_multi_cmd(step.multi_def,multi_samples)
 				end
 			end
 
-			# take the groups_cmd and perform the subsitutions into the step command lines
-			def sub_groups(cmd,step)
+			# take the multi_cmd and perform the subsitutions into the step command lines
+			def sub_multi(cmd,step)
 				cmd = sub_resources_and_cpu(cmd,step)
-				if step.groups_cmd.kind_of? Array
-					step.groups_cmd.each_with_index do |g,index|
-						cmd.gsub!(/<groups#{index+1}>/,g)
+				if step.multi_cmd.kind_of? Array
+					step.multi_cmd.each_with_index do |m,index|
+						cmd.gsub!(/<multi#{index+1}>/,m)
 					end
 				else
-					cmd.gsub!(/<groups>/,step.groups_cmd)
+					cmd.gsub!(/<multi>/,step.multi_cmd)
 				end
 				return cmd
 			end
 
-			# this sub method handle different sample groups (like comma separated, space separated etc.)
-			def generate_groups_cmd(group_def,sample_groups)
-				group_cmd = []	
-				sample_groups.each do |sample_name|
+			# this sub method handle different multi-samples definitions (like comma separated list, space separated etc.)
+			def generate_multi_cmd(multi_def,multi_samples)
+				multi_cmd = []	
+				multi_samples.each do |sample_name|
 					if sample_name.include? ","
-						group_cmd << split_and_sub(",",group_def,sample_name)
+						multi_cmd << split_and_sub(",",multi_def,sample_name)
 					elsif sample_name.include? ";"
-						group_cmd << split_and_sub(";",group_def,sample_name)
+						multi_cmd << split_and_sub(";",multi_def,sample_name)
 					else
-						group_cmd << sub_placeholders(group_def,self.samples_obj[sample_name])
+						multi_cmd << sub_placeholders(multi_def,self.samples_obj[sample_name])
 					end
 				end
-				return group_cmd.join("\s")
+				return multi_cmd.join("\s")
 			end
 
 			# take a non-space separated list of samples and perform the substitution with the group defitions
-			def split_and_sub(sep,group_def,group)	
+			def split_and_sub(sep,multi_def,multi)	
 				cmd_line = []
-				group.split(sep).each do |sample_name|
-					cmd_line << sub_placeholders(group_def,self.samples_obj[sample_name])
+				multi.split(sep).each do |sample_name|
+					cmd_line << sub_placeholders(multi_def,self.samples_obj[sample_name])
 				end
 				cmd_line.join(sep)
 			end
