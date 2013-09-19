@@ -25,6 +25,7 @@ when "run"
 		opt :tmp, "Temporary output folder", :type => :string, :short => "t"
 		opt :create_samples, "Create samples.yml file from a Sample directory (only for CASAVA projects)", :short => "c", :type => :strings
 		opt :multi, "List of samples to be processed by a given step (the order matters)", :short => "m", :type => :strings
+		opt :group, "Specify the group of samples to run the pipeline steps on (do not specify --multi)", :short => "g", :type => :string
 		opt :name, "Analysis name", :short => "n", :type => :string
 		opt :output_dir, "Output directory (override standard output directory names)", :short => "o", :type => :string
 		opt :pbs_opts, "PBS options", :type => :strings, :short => "b"
@@ -51,7 +52,10 @@ else
 end
 
 
+
 options = options.merge opts
+Trollop::die :multi, "Specifing both --group and --multi is not allowed" if options[:multi] and options[:group]
+
 if options[:create_samples]
 	Bio::Pipengine.create_samples options[:create_samples]
 elsif options[:jobs]
