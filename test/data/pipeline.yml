@@ -13,7 +13,7 @@ resources:
   trimmomatic: /storage/software/Trimmomatic-0.30/trimmomatic-0.30.jar
   gatk_jar: /storage/software/GenomeAnalysisTK-2.7-2-g6bda569/GenomeAnalysisTK.jar
 
-  
+steps:
   mapping:
     desc: Run BWA MEM and generates a sorted BAM file
     run:
