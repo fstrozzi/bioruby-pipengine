@@ -5,6 +5,7 @@ require 'trollop'
 require 'colorize'
 require 'torque_rm'
 require 'terminal-table'
+require 'fileutils'
 
 require 'bio/pipengine/sample'
 require 'bio/pipengine/step'

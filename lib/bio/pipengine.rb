@@ -1,6 +1,6 @@
 module Bio
 	module Pipengine
-
+	
 		def self.run(options)
 
 			# reading the yaml files
@@ -15,12 +15,32 @@ module Bio
 			########### START ###########
 
 			# list of samples the jobs will work on
-			samples_list = options[:samples] ? samples_file["samples"].select {|k,v| options[:samples].include? k} : samples_file["samples"]	
-		
+			samples_list = nil
+			# check if a group is specified
+			if options[:group]
+				samples_list = samples_file["samples"][options[:group]]
+				options[:multi] = samples_list.keys
+				samples_file["resources"]["output"] << "/#{options[:group]}"	
+			else # if not proceed normalizing the sample list to remove groups and get a list of all samples
+				full_list_samples = {}
+				samples_file["samples"].each_key do |k| 
+					if samples_file["samples"][k].kind_of? Hash
+						full_list_samples.merge! samples_file["samples"][k]
+					else
+						full_list_samples[k] = samples_file["samples"][k]
+					end
+				end
+				
+				samples_list = options[:samples] ? full_list_samples.select {|k,v| options[:samples].include? k} : full_list_samples
+			end
+
+			# create output directory (required since scripts will be saved there)
+			FileUtils.mkdir_p samples_file["resources"]["output"]
+
 			# check if the requested steps are multi-samples
 			run_multi = check_and_run_multi(samples_file,pipeline,samples_list,options)
 			
-			unless run_multi # there are no multi-sample steps, so iterate on samples and create one job per sample
+			unless run_multi # there are no multi-samples steps, so iterate on samples and create one job per sample
 				samples_list.each_key do |sample_name|
 					sample = Bio::Pipengine::Sample.new(sample_name,samples_list[sample_name])
 					create_job(samples_file,pipeline,samples_list,options,sample)
