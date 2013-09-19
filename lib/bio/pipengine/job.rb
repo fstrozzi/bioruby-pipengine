@@ -42,7 +42,7 @@ module Bio
 
 				# set job cpus number to the higher step cpus (this in case of multiple steps)
 				self.cpus = step.cpus if step.cpus > self.cpus
-				
+
 				# adding job working directory
 				unless step.name.start_with? "_"
 					self.command_line << "\nmkdir -p #{working_dir}"
@@ -76,12 +76,12 @@ module Bio
 
 			# convert the job object into a TORQUE::Qsub object
 			def to_pbs(options)
-				TORQUE::Qsub.new(options) do |job|
-					job.name = self.name
-					job.working_directory = self.output # where pbs scripts and stdout / stderr files will be saved
-					job.cpus = self.cpus
-					job.l = options[:pbs_opts]
-					job.script = self.command_line.join("\n")+"\n"
+				TORQUE::Qsub.new(options) do |torque_job|
+					torque_job.name = self.name
+					torque_job.working_directory = self.output # where pbs scripts and stdout / stderr files will be saved
+					torque_job.cpus = self.cpus
+					torque_job.l = options[:pbs_opts]
+					torque_job.script = self.command_line.join("\n")+"\n"
         end
 
 			end
