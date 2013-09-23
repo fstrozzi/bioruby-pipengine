@@ -9,10 +9,8 @@ module Bio
       samples_file["samples"] = Hash[samples_file["samples"].map{ |k, v| [k.to_s, v] }]
 		
 			# pre-running checks	
+			check_steps(options[:steps],pipeline)	
 			check_samples(options[:samples],samples_file) if options[:samples]
-			check_steps(options[:steps],pipeline)
-			
-			########### START ###########
 
 			# list of samples the jobs will work on
 			samples_list = nil
@@ -29,10 +27,11 @@ module Bio
 					else
 						full_list_samples[k] = samples_file["samples"][k]
 					end
-				end
-				
+				end	
 				samples_list = options[:samples] ? full_list_samples.select {|k,v| options[:samples].include? k} : full_list_samples
 			end
+				
+			########### START ###########
 
 			# create output directory (required since scripts will be saved there)
 			FileUtils.mkdir_p samples_file["resources"]["output"]
@@ -100,7 +99,15 @@ module Bio
 		# check if sample exists
 		def self.check_samples(passed_samples,samples)
 			passed_samples.each do |sample|
-				unless samples["samples"].keys.include? sample
+				samples_names = []
+				samples["samples"].each_key do |k|
+					if samples["samples"][k].kind_of? Hash
+						samples["samples"][k].each_key {|s| samples_names << s}
+					else
+						samples_names << k
+					end
+				end
+				unless samples_names.include? sample
 					puts "Sample \"#{sample}\" does not exist in sample file!".red
 					exit
 				end
@@ -136,13 +143,13 @@ module Bio
 					file.write "resources:\n\soutput:\n\nsamples:\n"
 					samples = Hash.new {|hash,key| hash[key] = []}
 					dir.each do |path|
-						projects = Dir.glob(path+"/*").select {|folders| folders.split("/")[-1] =~/Project_/}
+						projects = Dir.glob(path+"/*").sort.select {|folders| folders.split("/")[-1] =~/Project_/}
 						unless projects.empty?
 							projects.each do |project_folder|
-								Dir.glob(project_folder+"/*").each {|s| samples[s.split("/")[-1]] << s}
+								Dir.glob(project_folder+"/*").sort.each {|s| samples[s.split("/")[-1]] << s}
 							end
 						else
-							Dir.glob(path+"/*").each {|s| samples[s.split("/")[-1]] << s if Dir.exists? s}
+							Dir.glob(path+"/*").sort.each {|s| samples[s.split("/")[-1]] << s if Dir.exists? s}
 						end
 					end
 					samples.each_key do |sample|
