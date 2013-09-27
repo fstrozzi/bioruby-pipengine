@@ -108,8 +108,12 @@ module Bio
 			def sub_placeholders(cmd,sample,step=nil)	
 				tmp_cmd = cmd.gsub(/<sample>/,sample.name)
 				if tmp_cmd =~/<sample_path>/
-					sample_path_instruction = (tmp_cmd.scan(/<sample_path>(\S+)/).map {|e| e.first})
-					tmp_cmd.gsub!(/<sample_path>\S+/,(sample.path.map {|s| s+sample_path_instruction.first}).join("\s"))
+					sample_path_glob = (tmp_cmd.scan(/<sample_path>(\S+)/).map {|e| e.first})
+					if sample_path_glob.first.nil?
+						tmp_cmd.gsub!(/<sample_path>/,sample.path.join("\s"))
+					else
+						tmp_cmd.gsub!(/<sample_path>\S+/,(sample.path.map {|s| s+sample_path_glob.first}).join("\s"))
+					end
 				end
 				# for resourcers and cpus
 				tmp_cmd = sub_resources_and_cpu(tmp_cmd,step)
