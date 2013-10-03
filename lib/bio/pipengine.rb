@@ -6,8 +6,15 @@ module Bio
 			# reading the yaml files
 			pipeline = YAML.load_file options[:pipeline]
 			samples_file = YAML.load_file options[:samples_file]
-      samples_file["samples"] = Hash[samples_file["samples"].map{ |k, v| [k.to_s, v] }]
-		
+			samples_file["samples"].each do |k,v|
+				if v.kind_of? Hash
+					samples_file["samples"][k] = Hash[samples_file["samples"][k].map{ |key, value| [key.to_s, value.to_s] }] 
+				else
+					samples_file["samples"][k] = v.to_s
+				end
+			end
+
+			samples_file["resources"] = Hash[samples_file["resources"].map {|k,v| [k.to_s, v.to_s]}]	
 			# pre-running checks	
 			check_steps(options[:steps],pipeline)	
 			check_samples(options[:samples],samples_file) if options[:samples]
