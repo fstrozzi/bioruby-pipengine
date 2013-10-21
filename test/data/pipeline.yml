@@ -34,3 +34,4 @@ steps:
      - <bgzip> all.gatk.vcf
      - <tabix> -p vcf all.gatk.vcf.gz
     cpu: 20
+    nodes: 2

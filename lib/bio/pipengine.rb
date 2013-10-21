@@ -100,7 +100,6 @@ module Bio
 			script = job.to_pbs(options) # converting the Job into a TORQUE::Qsub PBS compatible object
 			job_id = script.submit(options)
 			puts "#{job_id}".green unless options[:dry]
-			#system("qsub #{script}") unless options[:dry] # submitting the job to the scheduler	
 		end
 
 		# check if sample exists

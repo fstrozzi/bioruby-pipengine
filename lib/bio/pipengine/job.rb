@@ -6,12 +6,13 @@ module Bio
 			# a Job object holds information on a job to be submitted
 			# samples_groups and samples_obj are used to store information in case of steps that require to combine info
 			# from multiple samples
-			attr_accessor :name, :cpus, :resources, :command_line, :local, :multi_samples, :samples_obj, :custom_output
+			attr_accessor :name, :cpus, :nodes, :mem, :resources, :command_line, :local, :multi_samples, :samples_obj, :custom_output
 			def initialize(name)
 				@name = generate_uuid + "-" + name
 				@command_line = []
 				@resources = {}
 				@cpus = 1
+				@nodes = "1"
 			end
 
 			def add_resources(resources)
@@ -23,8 +24,7 @@ module Bio
 			end
 
 			# add all the command lines for a given step
-			def add_step(step,sample)
-				
+			def add_step(step,sample)	
 
 				# setting job working directory
 				working_dir = ""	
@@ -42,6 +42,12 @@ module Bio
 
 				# set job cpus number to the higher step cpus (this in case of multiple steps)
 				self.cpus = step.cpus if step.cpus > self.cpus
+				
+				# set number of nodes for job
+				self.nodes = (step.nodes) ? step.nodes : @nodes
+
+				# set the memory used
+				self.mem = step.mem
 
 				# adding job working directory
 				unless step.name.start_with? "_"
@@ -79,8 +85,14 @@ module Bio
 				TORQUE::Qsub.new(options) do |torque_job|
 					torque_job.name = self.name
 					torque_job.working_directory = self.output # where pbs scripts and stdout / stderr files will be saved
-					torque_job.cpus = self.cpus
-					torque_job.l = options[:pbs_opts]
+					if options[:pbs_opts] 
+						torque_job.l = options[:pbs_opts]
+					else
+						l_string = []
+						l_string << "nodes=#{self.nodes}:ppn=#{self.cpus}"
+						l_string << "mem=#{self.mem}" if self.mem
+						torque_job.l = l_string 
+					end
 					torque_job.script = self.command_line.join("\n")+"\n"
         end
 
