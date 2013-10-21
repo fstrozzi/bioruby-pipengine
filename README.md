@@ -163,8 +163,9 @@ A step must be defined using standard keys:
 * the first key must be the step name
 * under the step name, a **run** key must be defined to hold the actual command line that will be executed
 * a **cpu** key must be defined if the command line uses more than 1 CPU at runtime
-* a **groups** key must be defined if the command line takes as input more than one sample (more details later)
+* a **multi** key must be defined if the command line takes as input more than one sample (more details later)
 * a **desc** key has been added to insert a short description that will be displayed using the **-i** option of PipEngine
+* a **nodes** and **mem** keys can be used to specify the resources needed for this job
 
 A note on the **run** key. If a single step need more than a command line to execute the required actions, these multiple command lines must be defined as an array in YAML (see the mapping step in the above example).
 
@@ -207,11 +208,11 @@ resources:
 
 samples:
   Group1:
-		sampleA: /ngs_reads/sampleA
-  	sampleB: /ngs_reads/sampleB
+    sampleA: /ngs_reads/sampleA
+    sampleB: /ngs_reads/sampleB
   Group2:
-		sampleC: /ngs_reads/sampleC
- 		sampleD: /ngs_reads/sampleD
+    sampleC: /ngs_reads/sampleC
+    sampleD: /ngs_reads/sampleD
 ```
 
 Then, by using the **-g** option of PipEngine, it is possible to run steps and pipelines directly on groups of samples.
