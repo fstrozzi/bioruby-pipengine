@@ -567,8 +567,8 @@ Note also that from version 0.5.2, it is possible to specify common PBS options 
   realign_target:
     run: java -Xmx4g -jar <gatk> -T RealignerTargetCreator -I <mark_dup/sample>.md.sort.bam -nt 8 -R <genome> -o <sample>.indels.intervals
     cpu: 8
-		nodes: 2
-		mem: 8G
+    nodes: 2
+    mem: 8G
 ```
 
 to have PipEngine translate this into:
