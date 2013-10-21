@@ -39,7 +39,7 @@ List of available commands:
 	jobs	Show statistics and interact with running jobs
 ```
 
-Since PipEngine uses the [TORQUE-RM](https://github.com/helios/torque_rm) gem to interact with the job scheduler, at the first run PipEngine will ask few questions to prepare the required configuration file (e.g. provide IP address and username to connect via SSH to the PBS Server / Masternode).
+Since PipEngine uses the [TORQUE-RM](https://github.com/helios/torque_rm) gem to interact with the job scheduler, at the first run PipEngine will ask few questions to prepare the required configuration file (e.g. provide IP address and username to connect via SSH to the PBS Server or Masternode).
 
 Command line for JOBS mode
 --------------------------
@@ -68,24 +68,22 @@ With this mode, PipEngine will submit pipeline jobs to the scheduler.
 > pipenengine run -p pipeline.yml -f samples.yml -s mapping --tmp /tmp
 ```
 
-**Mandatory parameters**
+**Parameters**
 ```shell
-        --pipeline, -p <s>:   YAML file with pipeline and sample details (default: pipeline.yml)
-                  --steps, -s <s+>:   List of steps to be execute
-    --samples-file, -f <s>:   YAML file with samples name and directory paths (default: samples.yml)
-
-```
-**Optional parameters**
-```shell
+          --pipeline, -p <s>:   YAML file with pipeline and sample details (default: pipeline.yml)
+      --samples-file, -f <s>:   YAML file with samples name and directory paths (default: samples.yml)
           --samples, -l <s+>:   List of sample names to run the pipeline
+            --steps, -s <s+>:   List of steps to be executed
                    --dry, -d:   Dry run. Just create the job script without submitting it to the batch system
-             --tmp, -t <s>:   	Temporary output folder
+               --tmp, -t <s>:   Temporary output folder
    --create-samples, -c <s+>:   Create samples.yml file from a Sample directory (only for CASAVA projects)
-           --groups, -g <s+>:   Group of samples to be processed by a given step
+            --multi, -m <s+>:   List of samples to be processed by a given step (the order matters)
+             --group, -g <s>:   Specify the group of samples to run the pipeline steps on (do not specify --multi)
               --name, -n <s>:   Analysis name
+        --output-dir, -o <s>:   Output directory (override standard output directory names)
          --pbs-opts, -b <s+>:   PBS options
-         --pbs-queue, -q <s>:   PBS queue
-  --inspect-pipeline, -i <s>:   Show pipeline steps
+             --queue, -q <s>:   PBS queue
+  --inspect-pipeline, -i <s>:   Show steps
                   --help, -h:   Show this message
 ```
 
@@ -195,6 +193,51 @@ For instance, if I am working with human RNA-seq samples, these data must be ali
 
 Generally, the tags defined under the samples **resources** are dependent on the pipeline and analysis one wants to run. So if using BWA to perform reads alignemnt, an **index** tag must be defined here to set the BWA index prefix and it will be substituted in the pipelines command lines every time an ```<index>``` placeholder will be found in the pipeline YAML.
 
+Sample groups
+-------------
+
+If you want to organize your samples by groups, it is possible to do it directly in the samples.yml file:
+
+
+```yaml
+resources:
+  index: /storage/genomes/bwa_index/genome
+  genome: /storage/genomes/genome.fa
+  output: /storage/results
+
+samples:
+  Group1:
+		sampleA: /ngs_reads/sampleA
+  	sampleB: /ngs_reads/sampleB
+  Group2:
+		sampleC: /ngs_reads/sampleC
+ 		sampleD: /ngs_reads/sampleD
+```
+
+Then, by using the **-g** option of PipEngine, it is possible to run steps and pipelines directly on groups of samples.
+
+
+How to create the Samples file
+------------------------------
+
+PipEngine is created to work primarly for NGS pipelines and with Illumina data in mind. So, the easiest thing to do if you have your samples already organized into a typical Illumina folder is to run:
+
+```shell
+> pipengine run -c /path/to/illumina/data
+```
+
+This will generate a samples.yml file with all the sample names and path derived from the run folder. The "resources" part is left blank for you to fill.
+
+As a plus, if you have your samples scattered thoughout many different run folders, you can specify all the paths that you want to PipEngine and it will combine all the paths in the same samples file. So if you have your samples spread across let's say 3 runs, you can call PipEngine in this way:
+
+```shell
+> pipengine run -c /path/to/illumina/run1 /path/to/illumina/run2 /path/to/illumina/run3
+```
+
+If a sample is repeated in more than one run, all the paths will be combined in the samples.yml and PipEngine will take care of handling the multiple paths correctly.
+
+
+
 :: Input and output conventions ::
 ==================================
 
@@ -225,6 +268,8 @@ When new steps of the same pipeline are run, output folders are updated accordin
                          /SampleB/mark_dup
                   .....
 ```
+
+In case you are working with group of samples, specified by the **-g** option, the output folder will be changed to reflect the samples grouping. So for example if a **mapping** step is called on the **Group1** group of samples, all the outputs will be saved under the ```<output>/Group1``` folder and results of mapping for SampleA, will be found under ```<output>/Group1/SampleA/mapping``` .
 
 
 How steps are connected together
@@ -266,7 +311,7 @@ Following the same idea, using a ```<mapping/>``` placeholder (note the / at the
 More complex dependences can be defined by combinations of ```<output>``` and ```<sample>``` placeholders, or using the ```<step/>``` and ```<step/sample>``` placeholders, without having to worry about the actual sample name and the complete input and output paths.
 
 
-:: Sample groups and complex steps ::
+:: Multi-Samples and complex steps ::
 =====================================
 
 The pipeline steps can be defined to run on a single sample or to take as input more than one sample data, depending on the command line used.
@@ -277,31 +322,31 @@ This is an extract of the step definition in the pipeline YAML to describe these
 
 ```yaml
   diffexp:
-    groups:
+    multi:
       - <output>/<sample>/cufflinks/transcripts.gtf
       - <mapping/sample>_tophat/accepted_hits.bam
     run:
-      - echo '<groups1>' | sed -e 's/,/ /g' | xargs ls >> gtf_list.txt
+      - echo '<multi1>' | sed -e 's/,/ /g' | xargs ls >> gtf_list.txt
       - <cuffcompare> -s <genome> -r <gtf> -i gtf_list.txt
-      - <cuffdiff> -p 12 -N -u -b <genome> ./*combined.gtf <groups2>
+      - <cuffdiff> -p 12 -N -u -b <genome> ./*combined.gtf <multi2>
     cpu: 12
 ```
 
 In this case we need to combine the outputs of all the samples from the cufflinks step and pass that information to cuffcompare and combine the outputs of the mapping steps and pass them to the cuffdiff command line.
 
-This is achived in two ways. First, the step definition must include a **groups** key, that simply defines what, for each sample, will be substituted where the ```<groups>``` placeholder is found.
+This is achived in two ways. First, the step definition must include a **multi** key, that simply defines what, for each sample, will be substituted where the ```<multi>``` placeholder is found.
 
 In the example above, the step includes two command lines, one for cuffcompare and the other for cuffdiff. Cuffcompare requires the transcripts.gtf for each sample, while Cuffdiff requires the BAM file for each sample, plus the output of Cuffcompare.
 
-So the two command lines need two different kind of files as input from the same set of samples, therefore two **groups** keywords are defined as well as two placeholders ```<groups1>``` and ```<groups2>```
+So the two command lines need two different kind of files as input from the same set of samples, therefore two **multi** keywords are defined as well as two placeholders ```<multi1>``` and ```<multi2>```
 
-Once the step has been defined in the pipeline YAML, PipEngine must be invoked using the **-g** parameter, to specify the samples that should be grouped together by this step:
+Once the step has been defined in the pipeline YAML, PipEngine must be invoked using the **-m** parameter, to specify the samples that should be grouped together by this step:
 
 ```shell
-pipengine -p pipeline.yml -g SampleA,SampleB SampleC,SampleB
+pipengine -p pipeline.yml -m SampleA,SampleB SampleC,SampleB
 ```
 
-Note that the use of commas is not casual, since the **-g** parameter specifies not only which samples should be used for this step, but also how they should be organized on the corresponding command line. The **-g** parameter takes the sample names and underneath it will combine the sample name with the 'groups' keywords and then it will substitute back the command line by keeping the samples in the same order as provided with the **-g**.
+Note that the use of commas is not casual, since the **-m** parameter specifies not only which samples should be used for this step, but also how they should be organized on the corresponding command line. The **-m** parameter takes the sample names and underneath it will combine the sample name with the 'multi' keywords and then it will substitute back the command line by keeping the samples in the same order as provided with the **-m**.
 
 The above command line will be translated, for the **cuffdiff** command line in the following:
 
@@ -313,15 +358,15 @@ and this will correspond to the way CuffDiff wants biological replicates for eac
 
 **Note**
 
-Sample groups management is complex and it's a task that can't be easily generalized since every software as it's own way to put and organize the inputs on the command line. This approach it's probably not the most elegant solution but works quite well, even if there are some drawbacks. For instance, as stated above, the samples groups is processed and passed to command lines as it is taken from the **-g** parameter.
+Multi-samples step management is complex and it's a task that can't be easily generalized since every software has it's own way to require and organize the inputs on the command line. This approach it's probably not the most elegant solution but works quite well, even if there are some drawbacks. For instance, as stated above, the samples groups is processed and passed to command lines as it is taken from the **-m** parameter.
 
 So for Cuffdiff, the presence of commas is critical to divide biological replicates from different conditions, but for Cuffcompare the commas are not needed and will raise an error on the command line. That's the reason of the:
 
 ```shell
-echo '<groups1>' | sed -e 's/,/ /g' | xargs ls >> gtf_list.txt
+echo '<multi1>' | sed -e 's/,/ /g' | xargs ls >> gtf_list.txt
 ```
 
-This line generates the input file for Cuffcompare with the list of the transcripts.gtf files for each sample, generated using the 'groups' definition in the pipeline YAML and the line passed through the **-g** parameter, but getting rid of the commas that separate sample names. It's a workaround and it's not a super clean solution, but PipEngine wants to be a general tool not binded to specific corner cases and it always lets the user define it's own custom command lines to manage particular steps, as in this case.
+This line generates the input file for Cuffcompare with the list of the transcripts.gtf files for each sample, generated using the 'multi' definition in the pipeline YAML and the line passed through the **-m** parameter, but getting rid of the commas that separate sample names. It's a workaround and it's not a super clean solution, but PipEngine wants to be a general tool not binded to specific corner cases and it always lets the user define it's own custom command lines to manage particular steps, as in this case.
 
 
 :: What happens at run-time ::
@@ -514,6 +559,24 @@ will become, in the shell script:
 #PBS -l nodes=2:ppn=8
 #PBS -l host=node5
 ```
+
+Note also that from version 0.5.2, it is possible to specify common PBS options like "nodes" and "mem" (for memory) directly within a step defition in the Pipeline yaml, exactly as it's done with the "cpu" parameter. So in a step it is possible to write:
+
+```yaml
+  realign_target:
+    run: java -Xmx4g -jar <gatk> -T RealignerTargetCreator -I <mark_dup/sample>.md.sort.bam -nt 8 -R <genome> -o <sample>.indels.intervals
+    cpu: 8
+		nodes: 2
+		mem: 8G
+```
+
+to have PipEngine translate this into:
+
+```shell
+#PBS -l nodes=2:ppn=8,mem=8G
+```
+
+within the job script.
 
 If a specific queue needs to be selected for sending the jobs to PBS, the ```--pbs-queue``` (short version **-q**) parameter can be used. This will pass to the ```qsub``` command the ```-q <queue name>``` taken from the command line.
 
