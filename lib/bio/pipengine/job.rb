@@ -91,7 +91,15 @@ module Bio
 						l_string = []
 						l_string << "nodes=#{self.nodes}:ppn=#{self.cpus}"
 						l_string << "mem=#{self.mem}" if self.mem
-						torque_job.l = l_string 
+						torque_job.l = l_string
+						if options[:mail_exit]
+							torque_job.m = "e"
+							torque_job.M = options[:mail_exit]
+						end
+						if options[:mail_start]
+							torque_job.m = "b"
+							torque_job.M = options[:mail_start]
+						end
 					end
 					torque_job.script = self.command_line.join("\n")+"\n"
         end
