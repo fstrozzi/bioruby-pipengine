@@ -74,15 +74,17 @@ module Bio
 		end
 
 		def self.create_job(samples_file,pipeline,samples_list,options,sample)
+			# getting the sample name (only if this is not a multi samples job)
+			sample_name = (sample.kind_of? Hash) ? nil : sample.name+"-"
 			# setting the job name
 			job_name = nil
 			if options[:name] 
 				job_name = options[:name]
 			elsif options[:steps].size > 1
-				job_name = options[:steps].join("-")
+				job_name = "#{sample_name}#{options[:steps].join("-")}"
 			else
-				job_name = options[:steps].first
-			end			
+				job_name = "#{sample_name}#{options[:steps].first}"
+			end	
 			# creating the Job object
 			job = Bio::Pipengine::Job.new(job_name)
 			job.local = options[:tmp]
