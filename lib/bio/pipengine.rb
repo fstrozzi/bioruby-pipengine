@@ -13,8 +13,10 @@ module Bio
 					samples_file["samples"][k] = v.to_s
 				end
 			end
-
+			# make sure everything in Samples and Resources is converted to string
+			samples_file["samples"] = Hash[samples_file["samples"].map{ |key, value| [key.to_s, value.to_s] }] 
 			samples_file["resources"] = Hash[samples_file["resources"].map {|k,v| [k.to_s, v.to_s]}]	
+			
 			# pre-running checks	
 			check_steps(options[:steps],pipeline)	
 			check_samples(options[:samples],samples_file) if options[:samples]
