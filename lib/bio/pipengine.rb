@@ -28,7 +28,7 @@ module Bio
 				samples_list = samples_file["samples"][options[:group]]
 				options[:multi] = samples_list.keys
 				samples_file["resources"]["output"] << "/#{options[:group]}"	
-			else # if not proceed normalizing the sample list to remove groups and get a list of all samples
+			else # if not, proceed normalizing the sample list to remove groups and get a list of all samples
 				full_list_samples = {}
 				samples_file["samples"].each_key do |k| 
 					if samples_file["samples"][k].kind_of? Hash
@@ -42,7 +42,7 @@ module Bio
 				
 			########### START ###########
 
-			# create output directory (required since scripts will be saved there)
+			# create output directory (jobs scripts will be saved there)
 			FileUtils.mkdir_p samples_file["resources"]["output"]
 
 			# check if the requested steps are multi-samples
@@ -93,7 +93,7 @@ module Bio
 			job.custom_output = options[:output_dir]
 			job.add_resources pipeline["resources"]
 			job.add_resources samples_file["resources"]
-			# setting sample groups either by cli option (if any) or by taking all available samples
+			# setting sample groups either by cli option (if present) or by taking all available samples
 			job.multi_samples = (options[:multi]) ? options[:multi] : samples_list.keys
 			job.samples_obj = sample if sample.kind_of? Hash
 			# cycling through steps and add command lines to the job
