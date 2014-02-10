@@ -129,10 +129,12 @@ module Bio
 				tmp_cmd = cmd.gsub(/<sample>/,sample.name)
 				if tmp_cmd =~/<sample_path>/
 					sample_path_glob = (tmp_cmd.scan(/<sample_path>(\S+)/).map {|e| e.first})
-					if sample_path_glob.first.nil?
+					if sample_path_glob.first.empty?
 						tmp_cmd.gsub!(/<sample_path>/,sample.path.join("\s"))
 					else
-						tmp_cmd.gsub!(/<sample_path>\S+/,(sample.path.map {|s| s+sample_path_glob.first}).join("\s"))
+						sample_path_glob.each do |append|
+							tmp_cmd.gsub!(/<sample_path>#{Regexp.quote(append)}/,(sample.path.map {|s| s+append}).join("\s"))
+						end
 					end
 				end
 				# for resourcers and cpus
