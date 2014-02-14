@@ -14,7 +14,7 @@ module Bio
 				end
 			end
 			# make sure everything in Samples and Resources is converted to string
-			samples_file["samples"] = Hash[samples_file["samples"].map{ |key, value| [key.to_s, value.to_s] }] 
+			#samples_file["samples"] = Hash[samples_file["samples"].map{ |key, value| [key.to_s, value.to_s] }] 
 			samples_file["resources"] = Hash[samples_file["resources"].map {|k,v| [k.to_s, v.to_s]}]	
 			
 			# pre-running checks	
@@ -25,8 +25,8 @@ module Bio
 			samples_list = nil
 			# check if a group is specified
 			if options[:group]
-				samples_list = samples_file["samples"][options[:group]]
-				options[:multi] = samples_list.keys
+				samples_list = options[:samples] ? samples_file["samples"][options[:group]].select {|k,v| options[:samples].include? k} : samples_file["samples"][options[:group]]
+				options[:multi] = samples_list.keys 
 				samples_file["resources"]["output"] << "/#{options[:group]}"	
 			else # if not, proceed normalizing the sample list to remove groups and get a list of all samples
 				full_list_samples = {}
@@ -36,7 +36,7 @@ module Bio
 					else
 						full_list_samples[k] = samples_file["samples"][k]
 					end
-				end	
+				end
 				samples_list = options[:samples] ? full_list_samples.select {|k,v| options[:samples].include? k} : full_list_samples
 			end
 				
