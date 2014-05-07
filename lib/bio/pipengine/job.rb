@@ -9,6 +9,7 @@ module Bio
 			attr_accessor :name, :cpus, :nodes, :mem, :resources, :command_line, :local, :multi_samples, :samples_obj, :custom_output
 			def initialize(name)
 				@name = generate_uuid + "-" + name
+				@shortname = name
 				@command_line = []
 				@resources = {}
 				@cpus = 1
@@ -32,12 +33,20 @@ module Bio
 					working_dir = self.local+"/"+self.name
 				else
 					working_dir = self.output
-					folder = (self.custom_output) ? self.custom_output : step.name
-					if step.is_multi?
-						working_dir += "/#{folder}"
+
+					if step.is_multi?	
+						if @shortname
+							folder = (self.custom_output) ? self.custom_output : @shortname 
+						else 
+							folder = (self.custom_output) ? self.custom_output : step.name
+						end
+						working_dir += "/#{folder}" 
+						
 					else
+						folder = (self.custom_output) ? self.custom_output : step.name
 						working_dir += "/#{sample.name}/#{folder}"
 					end
+
 				end
 
 				# set job cpus number to the higher step cpus (this in case of multiple steps)
@@ -67,12 +76,20 @@ module Bio
 				# check if a temporary (i.e. different from 'output') directory is set
 				if self.local
 					final_output = ""
-					folder = (self.custom_output) ? self.custom_output : step.name
-					if step.is_multi?
+
+					if step.is_multi?	
+						if @shortname
+							folder = (self.custom_output) ? self.custom_output : @shortname 
+						else 
+							folder = (self.custom_output) ? self.custom_output : step.name
+						end
 						final_output = self.output+"/#{folder}"
+						 
 					else
+						folder = (self.custom_output) ? self.custom_output : step.name
 						final_output = self.output+"/#{sample.name}/#{folder}"
 					end
+
 					self.command_line << "mkdir -p #{final_output}"
 					self.command_line << "cp -r #{working_dir}/* #{final_output}"
 					self.command_line << "rm -fr #{working_dir}"
