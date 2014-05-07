@@ -35,13 +35,8 @@ module Bio
 					working_dir = self.output
 
 					if step.is_multi?	
-						if @shortname
-							folder = (self.custom_output) ? self.custom_output : @shortname 
-						else 
-							folder = (self.custom_output) ? self.custom_output : step.name
-						end
-						working_dir += "/#{folder}" 
-						
+						folder = (self.custom_output) ? self.custom_output : @shortname 
+						working_dir += "/#{folder}"
 					else
 						folder = (self.custom_output) ? self.custom_output : step.name
 						working_dir += "/#{sample.name}/#{folder}"
@@ -78,13 +73,8 @@ module Bio
 					final_output = ""
 
 					if step.is_multi?	
-						if @shortname
-							folder = (self.custom_output) ? self.custom_output : @shortname 
-						else 
-							folder = (self.custom_output) ? self.custom_output : step.name
-						end
-						final_output = self.output+"/#{folder}"
-						 
+						folder = (self.custom_output) ? self.custom_output : @shortname 
+						final_output = self.output+"/#{folder}"	 
 					else
 						folder = (self.custom_output) ? self.custom_output : step.name
 						final_output = self.output+"/#{sample.name}/#{folder}"
