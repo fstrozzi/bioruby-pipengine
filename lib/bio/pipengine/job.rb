@@ -136,7 +136,7 @@ module Bio
 				tmp_cmd = cmd.gsub(/<sample>/,sample.name)
 				if tmp_cmd =~/<sample_path>/
 					sample_path_glob = (tmp_cmd.scan(/<sample_path>(\S+)/).map {|e| e.first})
-					if sample_path_glob.first.empty?
+					if sample_path_glob.empty?
 						tmp_cmd.gsub!(/<sample_path>/,sample.path.join("\s"))
 					else
 						sample_path_glob.each do |append|
