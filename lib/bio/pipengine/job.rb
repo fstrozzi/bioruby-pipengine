@@ -6,7 +6,7 @@ module Bio
 			# a Job object holds information on a job to be submitted
 			# samples_groups and samples_obj are used to store information in case of steps that require to combine info
 			# from multiple samples
-			attr_accessor :name, :cpus, :nodes, :mem, :resources, :command_line, :local, :multi_samples, :samples_obj, :custom_output
+			attr_accessor :name, :cpus, :nodes, :mem, :resources, :command_line, :local, :multi_samples, :samples_obj, :custom_output, :custom_name
 			def initialize(name)
 				@name = generate_uuid + "-" + name
 				@shortname = name
@@ -38,7 +38,14 @@ module Bio
 						folder = (self.custom_output) ? self.custom_output : @shortname 
 						working_dir += "/#{folder}"
 					else
-						folder = (self.custom_output) ? self.custom_output : step.name
+						folder =
+						if self.custom_output 
+							self.custom_output
+						elsif self.custom_name
+							self.custom_name
+						else
+							step.name
+						end
 						working_dir += "/#{sample.name}/#{folder}"
 					end
 

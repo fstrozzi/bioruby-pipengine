@@ -91,6 +91,7 @@ module Bio
 			job = Bio::Pipengine::Job.new(job_name)
 			job.local = options[:tmp]
 			job.custom_output = options[:output_dir]
+			job.custom_name = (options[:name]) ? options[:name] : nil
 			job.add_resources pipeline["resources"]
 			job.add_resources samples_file["resources"]
 			# setting sample groups either by cli option (if present) or by taking all available samples
