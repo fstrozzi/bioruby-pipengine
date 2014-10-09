@@ -29,7 +29,7 @@ when "run"
 		opt :name, "Analysis name", :short => "n", :type => :string
 		opt :output_dir, "Output directory (override standard output directory names)", :short => "o", :type => :string
 		opt :pbs_opts, "PBS options", :type => :strings, :short => "b"
-		opt :queue, "PBS queue", :type => :string, :short => "q"
+		opt :pbs_queue, "PBS queue", :type => :string, :short => "q"
 		opt :inspect_pipeline, "Show steps", :short => "i", :type => :string
 		opt :mail_exit, "Send an Email when the job terminates", :type => :string
 		opt :mail_start, "Send an Email when the job starts", :type => :string
