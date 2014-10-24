@@ -129,6 +129,13 @@ module Bio
                 end
 			end
 
+			def to_script(options)
+			  File.open(self.name+'.sh','w') do |file|
+		          file.puts "#!/usr/bin/env bash -l"
+			      file.puts self.command_line.join("\n")
+			  end
+			end
+
 		private
 			
 			# create a unique ID for each job

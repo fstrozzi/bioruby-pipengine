@@ -43,7 +43,7 @@ module Bio
 			########### START ###########
 
 			# create output directory (jobs scripts will be saved there)
-			FileUtils.mkdir_p samples_file["resources"]["output"] unless options[:dry_script]
+			FileUtils.mkdir_p samples_file["resources"]["output"] unless options[:dry] && options[:spooler]!="pbs"
 
 			# check if the requested steps are multi-samples
 			run_multi = check_and_run_multi(samples_file,pipeline,samples_list,options)
@@ -103,16 +103,13 @@ module Bio
 				job.add_step(step,sample) # adding step command lines to the job	
 			end
 
-			if options[:dry_script]
-			  File.open(job.name+'.sh','w') do |file|
-          file.puts "#!/usr/bin/env bash -l"
-			    file.puts job.command_line.join("\n")
-			  end
+			if options[:dry] && options[:spooler] == "script"
+				job.to_script(options)
 			else
 			  script = job.to_pbs(options) # converting the Job into a TORQUE::Qsub PBS compatible object
 			  job_id = script.submit(options)
 			  puts "#{job_id}".green unless options[:dry]
-      end
+            end
 		end
 
 		# check if sample exists

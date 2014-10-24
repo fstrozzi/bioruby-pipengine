@@ -22,7 +22,7 @@ when "run"
 		opt :samples, "List of sample names to run the pipeline", :type => :strings, :short => "l"
 		opt :steps, "List of steps to be executed", :type => :strings, :short => "s"
 		opt :dry,"Dry run. Just create the job script without submitting it to the batch system", :short => "d"
-		opt :dry_script,"Dry run creating a bash script. Just create a generic bash script without running it", :short =>"x"
+		opt :spooler,"Destination spooler PBS, plain shell script", :short =>"x", :type => :string, :default => "pbs"
 		opt :tmp, "Temporary output folder", :type => :string, :short => "t"
 		opt :create_samples, "Create samples.yml file from a Sample directory (only for CASAVA projects)", :short => "c", :type => :strings
 		opt :multi, "List of samples to be processed by a given step (the order matters)", :short => "m", :type => :strings
