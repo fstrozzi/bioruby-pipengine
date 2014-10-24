@@ -71,13 +71,13 @@ module Bio
 
 				# generate command lines for this step
 				if step.run.kind_of? Array
-					step.run.each do |cmd|
+					step.run.each_with_index do |cmd, i|
 						command = generate_cmd_line(cmd,sample,step)
-						self.command_line << "#{command} || { echo \"FAILED `date`: #{command} \" ; exit 1; }"
+						self.command_line << "#{command} || { echo \"FAILED `date`: #{step.name}:#{i}\" ; exit 1; }"
 					end
 				else
 					command = generate_cmd_line(step.run,sample,step)
-					self.command_line << "#{command} || { echo \"FAILED `date`: #{command} \" ; exit 1; }"
+					self.command_line << "#{command} || { echo \"FAILED `date`: #{step.name} \" ; exit 1; }"
 				end
 				self.command_line << "echo \"#{step.name} finished `date`.\""
                 self.command_line << "touch #{working_dir}/checkpoint"
