@@ -73,11 +73,11 @@ module Bio
 				if step.run.kind_of? Array
 					step.run.each_with_index do |cmd, i|
 						command = generate_cmd_line(cmd,sample,step)
-						self.command_line << "(#{command} || { echo \"FAILED `date`: #{step.name}:#{i}\" ; exit 1; }) > >(tee -a stdout.log) 2> >(tee -a stderr.log >&2)"
+						self.command_line << "#{command} || { echo \"FAILED `date`: #{step.name}:#{i}\" ; exit 1; }"
 					end
 				else
 					command = generate_cmd_line(step.run,sample,step)
-					self.command_line << "(#{command} || { echo \"FAILED `date`: #{step.name} \" ; exit 1; }) > >(tee -a stdout.log) 2> >(tee -a stderr.log >&2)"
+					self.command_line << "#{command} || { echo \"FAILED `date`: #{step.name} \" ; exit 1; }"
 				end
 				self.command_line << "echo \"#{step.name} finished `date`.\""
                 self.command_line << "touch #{working_dir}/checkpoint"
@@ -127,7 +127,7 @@ module Bio
 					end
 					
 					torque_job.q = options[:pbs_queue] if options[:pbs_queue]
-					
+
 					torque_job.script = self.command_line.join("\n")+"\n"
                 end
 			end
