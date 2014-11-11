@@ -82,7 +82,7 @@ With this mode, PipEngine will submit pipeline jobs to the scheduler.
               --name, -n <s>:   Analysis name
         --output-dir, -o <s>:   Output directory (override standard output directory names)
          --pbs-opts, -b <s+>:   PBS options
-             --queue, -q <s>:   PBS queue
+         --pbs-queue, -q <s>:   PBS queue
   --inspect-pipeline, -i <s>:   Show steps
                   --help, -h:   Show this message
 ```

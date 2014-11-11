@@ -62,18 +62,28 @@ module Bio
 
 				# adding job working directory
 				unless step.name.start_with? "_"
+					self.command_line << "if [ ! -f #{working_dir}/checkpoint ]"
+					self.command_line << "then"
+					self.command_line << "echo \"#{step.name} started `date`.\""
 					self.command_line << "\nmkdir -p #{working_dir}"
 					self.command_line << "cd #{working_dir}"
 				end
 
 				# generate command lines for this step
 				if step.run.kind_of? Array
-					step.run.each do |cmd|
-						self.command_line << generate_cmd_line(cmd,sample,step)	
+					step.run.each_with_index do |cmd, i|
+						command = generate_cmd_line(cmd,sample,step)
+						self.command_line << "#{command} || { echo \"FAILED `date`: #{step.name}:#{i}\" ; exit 1; }"
 					end
 				else
-					self.command_line << generate_cmd_line(step.run,sample,step)
+					command = generate_cmd_line(step.run,sample,step)
+					self.command_line << "#{command} || { echo \"FAILED `date`: #{step.name} \" ; exit 1; }"
 				end
+				self.command_line << "echo \"#{step.name} finished `date`.\""
+                self.command_line << "touch #{working_dir}/checkpoint"
+				self.command_line << "else"
+				self.command_line << "echo \"#{step.name} already executed, skip this step `date`.\""
+				self.command_line << "fi"
 			
 				# check if a temporary (i.e. different from 'output') directory is set
 				if self.local
@@ -115,9 +125,18 @@ module Bio
 							torque_job.M = options[:mail_start]
 						end
 					end
-					torque_job.script = self.command_line.join("\n")+"\n"
-        end
+					
+					torque_job.q = options[:pbs_queue] if options[:pbs_queue]
 
+					torque_job.script = self.command_line.join("\n")+"\n"
+                end
+			end
+
+			def to_script(options)
+			  File.open(self.name+'.sh','w') do |file|
+		          file.puts "#!/usr/bin/env bash -l"
+			      file.puts self.command_line.join("\n")
+			  end
 			end
 
 		private
