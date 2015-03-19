@@ -35,7 +35,7 @@ when "run"
 		opt :mail_exit, "Send an Email when the job terminates", :type => :string
 		opt :mail_start, "Send an Email when the job starts", :type => :string
 		opt :log, "Log script activities, by default stdin. Options are fluentd", :type => :string, :default => "stdin"
-		opt :log_adapter, "(stdin|syslog|fluentd) In case of fluentd use htttp://destination.hostname:port/yourtag", :type => :string
+		opt :log_adapter, "(stdin|syslog|fluentd) In case of fluentd use http://destination.hostname:port/yourtag", :type => :string
 	end
 when "jobs"
 	ARGV.shift
