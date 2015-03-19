@@ -256,14 +256,14 @@ module Bio
 			end
 
 			# log a step according to the selected adapter
-			def logger(step, message)
+			def logger(step, message)  
 				case self.log
 					when "stdin"
-					   "echo \"#{step.name} #{message} `date`.\""
+					   "echo \"#{step.name} #{name} #{message} `date`.\""
 					when "syslog"
-						 "logger -t PIPENGINE \"#{step.name} #{message}\""
+						 "logger -t PIPENGINE \"#{step.name} #{name} #{message}\""
 					when "fluentd"
-						 "curl -X POST -d 'json={\"source\":\"PIPENGINE\", \"step\":\"#{step.name}\", \"message\":\"#{message}\"}' #{self.log_adapter}"
+						 "curl -X POST -d 'json={\"source\":\"PIPENGINE\", \"step\":\"#{step.name}\", \"message\":\"#{message}\", \"job_id\":\"#{name}\"}' #{self.log_adapter}"
 					end
 			end #logger
 
