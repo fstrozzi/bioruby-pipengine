@@ -94,6 +94,9 @@ module Bio
 			job.custom_name = (options[:name]) ? options[:name] : nil
 			job.add_resources pipeline["resources"]
 			job.add_resources samples_file["resources"]
+			#setting the logging system
+			job.log = options[:log]
+			job.log_adapter = options[:log_adapter]
 			# setting sample groups either by cli option (if present) or by taking all available samples
 			job.multi_samples = (options[:multi]) ? options[:multi] : samples_list.keys
 			job.samples_obj = sample if sample.kind_of? Hash
