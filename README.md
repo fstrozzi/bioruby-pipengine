@@ -70,20 +70,35 @@ With this mode, PipEngine will submit pipeline jobs to the scheduler.
 
 **Parameters**
 ```shell
-          --pipeline, -p <s>:   YAML file with pipeline and sample details (default: pipeline.yml)
-      --samples-file, -f <s>:   YAML file with samples name and directory paths (default: samples.yml)
+          --pipeline, -p <s>:   YAML file with pipeline and sample details
+                                (default: pipeline.yml)
+      --samples-file, -f <s>:   YAML file with samples name and directory paths
+                                (default: samples.yml)
           --samples, -l <s+>:   List of sample names to run the pipeline
             --steps, -s <s+>:   List of steps to be executed
-                   --dry, -d:   Dry run. Just create the job script without submitting it to the batch system
+                   --dry, -d:   Dry run. Just create the job script without
+                                submitting it to the batch system
+           --spooler, -x <s>:   Destination spooler PBS, plain shell script
+                                (default: pbs)
                --tmp, -t <s>:   Temporary output folder
-   --create-samples, -c <s+>:   Create samples.yml file from a Sample directory (only for CASAVA projects)
-            --multi, -m <s+>:   List of samples to be processed by a given step (the order matters)
-             --group, -g <s>:   Specify the group of samples to run the pipeline steps on (do not specify --multi)
+   --create-samples, -c <s+>:   Create samples.yml file from a Sample directory
+                                (only for CASAVA projects)
+            --multi, -m <s+>:   List of samples to be processed by a given step
+                                (the order matters)
+             --group, -g <s>:   Specify the group of samples to run the
+                                pipeline steps on (do not specify --multi)
               --name, -n <s>:   Analysis name
-        --output-dir, -o <s>:   Output directory (override standard output directory names)
+        --output-dir, -o <s>:   Output directory (override standard output
+                                directory names)
          --pbs-opts, -b <s+>:   PBS options
          --pbs-queue, -q <s>:   PBS queue
   --inspect-pipeline, -i <s>:   Show steps
+         --mail-exit, -a <s>:   Send an Email when the job terminates
+        --mail-start, -r <s>:   Send an Email when the job starts
+                   --log <s>:   Log script activities, by default stdin.
+                                Options are fluentd (default: stdin)
+       --log-adapter, -e <s>:   (stdin|syslog|fluentd) In case of fluentd use
+                                http://destination.hostname:port/yourtag
                   --help, -h:   Show this message
 ```
 
@@ -540,6 +555,16 @@ mkdir -p /storage/results/sampleB/realign_target
 cd /storage/results/sampleB/realign_target
 java -Xmx4g -jar /software/GenomeAnalysisTk/GenomeAnalysisTk.jar -T RealignerTargetCreator -I sampleB.md.sort.bam -nt 8 -R /storage/genomes/genome.fa -o sampleB.indels.intervals
 ```
+
+Logging
+---------------------------
+
+It is always usefult to log activities and collect the output from your software. Pipengine can log to:
+
+* stdin, just print on the terminal
+* syslog send the log to the system log using logger
+* fluentd send the log to a collector/centralized logging system (http://fluentd.org)
+
 
 :: PBS Options ::
 =================
