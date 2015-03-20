@@ -263,7 +263,7 @@ module Bio
 					when "syslog"
 						 "logger -t PIPENGINE \"#{step.name} #{name} #{message} `whoami` `hostname` `pwd`\""
 					when "fluentd"
-						 "curl -X POST -d 'json={\"source\":\"PIPENGINE\", \"step\":\"#{step.name}\", \"message\":\"#{message}\", \"job_id\":\"#{name}\", \"user\":\"`whoami`\", \"host\":\"`hostname`\", \"pwd\":\"`pwd`\"}' #{self.log_adapter}"
+						 "curl -X POST -d \"json={\"source\":\"PIPENGINE\", \"step\":\"#{step.name}\", \"message\":\"#{message}\", \"job_id\":\"#{name}\", \"user\":\"`whoami`\", \"host\":\"`hostname`\", \"pwd\":\"`pwd`\"}\" #{self.log_adapter}"
 					end
 			end #logger
 
