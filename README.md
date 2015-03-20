@@ -326,6 +326,27 @@ Following the same idea, using a ```<mapping/>``` placeholder (note the / at the
 
 More complex dependences can be defined by combinations of ```<output>``` and ```<sample>``` placeholders, or using the ```<step/>``` and ```<step/sample>``` placeholders, without having to worry about the actual sample name and the complete input and output paths.
 
+Jobs dependencies
+-------------------------
+Steps can also be defined with dependencies so the user can just call the final step and all the upper chain is called automatically. To achieve this task Pipengine requires that the user defines a
+```
+ pre:
+```
+tag in the step definition:
+
+```
+  root_step:
+    desc: root step to test dependencies
+    run:
+     - echo "root"
+
+  child_step:
+    desc: child step to test dependencies
+    pre: root_step
+    run:
+      - echo "I am the child"
+```
+
 
 :: Multi-Samples and complex steps ::
 =====================================

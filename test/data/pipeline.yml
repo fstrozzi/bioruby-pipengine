@@ -35,3 +35,14 @@ steps:
      - <tabix> -p vcf all.gatk.vcf.gz
     cpu: 20
     nodes: 2
+
+  root_step:
+    desc: root step to test dependencies
+    run:
+     - echo "root"
+
+  child_step:
+    desc: child step to test dependencies
+    pre: root_step
+    run:
+      - echo "I am the child"

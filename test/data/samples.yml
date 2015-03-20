@@ -1,12 +1,12 @@
 resources:
-  index: /storage/genomes/bwa_index/genome
-  genome: /storage/genomes/genome.fa
-  output: /storage/strozzif/test
+  index: ./
+  # genome: ./
+  output: ./test
 
 samples:
   Group1:
-    sampleA: /ngs_reads/sampleA
-    sampleB: /ngs_reads/sampleB
+    sampleA: ./sampleA
+    sampleB: ./sampleB
   Group2:
-    sampleC: /ngs_reads/sampleC
-    sampleD: /ngs_reads/sampleD
+    sampleC: ./sampleC
+    sampleD: ./sampleD

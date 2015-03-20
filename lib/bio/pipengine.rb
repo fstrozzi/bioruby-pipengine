@@ -101,9 +101,9 @@ module Bio
 			job.multi_samples = (options[:multi]) ? options[:multi] : samples_list.keys
 			job.samples_obj = sample if sample.kind_of? Hash
 			# cycling through steps and add command lines to the job
-			options[:steps].each do |step_name|
-				step = Bio::Pipengine::Step.new(step_name,pipeline["steps"][step_name]) # parsing step instructions
-				job.add_step(step,sample) # adding step command lines to the job	
+			options[:steps].each do |step_name| 
+				# TODO WARNING this can add multiple times the same step is the are multi dependencies
+				self.add_job(job, pipeline, step_name, sample)
 			end
 
 			if options[:dry] && options[:spooler] == "script"
@@ -195,7 +195,7 @@ module Bio
 			else 
 				job_ids.each {|job_id| Qdel.rm job_id}
 			end
-		end
+		end #delete_jobs
 
 		# check if required configuration exists
 		def self.check_config
@@ -222,8 +222,13 @@ module Bio
 					exit
 				end
 			end
+		end #check_config
 
-		end
+		def self.add_job(job, pipeline, step_name, sample)
+			step = Bio::Pipengine::Step.new(step_name,pipeline["steps"][step_name]) # parsing step instructions
+			self.add_job(job, pipeline, step.pre, sample) if step.has_prerequisite?
+			job.add_step(step,sample) # adding step command lines to the job	
+		end #add_job
 		
 	end
 end
