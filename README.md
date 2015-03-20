@@ -78,8 +78,6 @@ With this mode, PipEngine will submit pipeline jobs to the scheduler.
             --steps, -s <s+>:   List of steps to be executed
                    --dry, -d:   Dry run. Just create the job script without
                                 submitting it to the batch system
-           --spooler, -x <s>:   Destination spooler PBS, plain shell script
-                                (default: pbs)
                --tmp, -t <s>:   Temporary output folder
    --create-samples, -c <s+>:   Create samples.yml file from a Sample directory
                                 (only for CASAVA projects)
