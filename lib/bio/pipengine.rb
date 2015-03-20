@@ -43,7 +43,7 @@ module Bio
 			########### START ###########
 
 			# create output directory (jobs scripts will be saved there)
-			FileUtils.mkdir_p samples_file["resources"]["output"] unless options[:dry] && options[:spooler]!="pbs"
+			FileUtils.mkdir_p samples_file["resources"]["output"] unless options[:dry] #&& options[:spooler]!="pbs"
 
 			# check if the requested steps are multi-samples
 			run_multi = check_and_run_multi(samples_file,pipeline,samples_list,options)
@@ -94,16 +94,19 @@ module Bio
 			job.custom_name = (options[:name]) ? options[:name] : nil
 			job.add_resources pipeline["resources"]
 			job.add_resources samples_file["resources"]
+			#setting the logging system
+			job.log = options[:log]
+			job.log_adapter = options[:log_adapter]
 			# setting sample groups either by cli option (if present) or by taking all available samples
 			job.multi_samples = (options[:multi]) ? options[:multi] : samples_list.keys
 			job.samples_obj = sample if sample.kind_of? Hash
 			# cycling through steps and add command lines to the job
-			options[:steps].each do |step_name|
-				step = Bio::Pipengine::Step.new(step_name,pipeline["steps"][step_name]) # parsing step instructions
-				job.add_step(step,sample) # adding step command lines to the job	
+			options[:steps].each do |step_name| 
+				# TODO WARNING this can add multiple times the same step is the are multi dependencies
+				self.add_job(job, pipeline, step_name, sample)
 			end
 
-			if options[:dry] && options[:spooler] == "script"
+			if options[:dry] #&& options[:spooler] == "script"
 				job.to_script(options)
 			else
 			  script = job.to_pbs(options) # converting the Job into a TORQUE::Qsub PBS compatible object
@@ -192,7 +195,7 @@ module Bio
 			else 
 				job_ids.each {|job_id| Qdel.rm job_id}
 			end
-		end
+		end #delete_jobs
 
 		# check if required configuration exists
 		def self.check_config
@@ -219,8 +222,13 @@ module Bio
 					exit
 				end
 			end
+		end #check_config
 
-		end
+		def self.add_job(job, pipeline, step_name, sample)
+			step = Bio::Pipengine::Step.new(step_name,pipeline["steps"][step_name]) # parsing step instructions
+			self.add_job(job, pipeline, step.pre, sample) if step.has_prerequisite?
+			job.add_step(step,sample) # adding step command lines to the job	
+		end #add_job
 		
 	end
 end

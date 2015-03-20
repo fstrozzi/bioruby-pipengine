@@ -6,7 +6,9 @@ module Bio
 			# a Job object holds information on a job to be submitted
 			# samples_groups and samples_obj are used to store information in case of steps that require to combine info
 			# from multiple samples
-			attr_accessor :name, :cpus, :nodes, :mem, :resources, :command_line, :local, :multi_samples, :samples_obj, :custom_output, :custom_name
+			attr_accessor :name, :cpus, :nodes, :mem, :resources, :command_line, :local,
+			              :multi_samples, :samples_obj, :custom_output, :custom_name,
+			              :log, :log_adapter
 			def initialize(name)
 				@name = generate_uuid + "-" + name
 				@shortname = name
@@ -14,6 +16,8 @@ module Bio
 				@resources = {}
 				@cpus = 1
 				@nodes = "1"
+				@log = "stdin"
+				@log_adapter = nil
 			end
 
 			def add_resources(resources)
@@ -64,7 +68,7 @@ module Bio
 				unless step.name.start_with? "_"
 					self.command_line << "if [ ! -f #{working_dir}/checkpoint ]"
 					self.command_line << "then"
-					self.command_line << "echo \"#{step.name} started `date`.\""
+					self.command_line << logger(step, "start")
 					self.command_line << "\nmkdir -p #{working_dir}"
 					self.command_line << "cd #{working_dir}"
 				end
@@ -73,16 +77,20 @@ module Bio
 				if step.run.kind_of? Array
 					step.run.each_with_index do |cmd, i|
 						command = generate_cmd_line(cmd,sample,step)
-						self.command_line << "#{command} || { echo \"FAILED `date`: #{step.name}:#{i}\" ; exit 1; }"
+						# TODO verify that logger works in this case
+						# self.command_line << "#{command} || { echo \"FAILED `date`: #{step.name}:#{i}\" ; exit 1; }"
+						self.command_line << "#{command} || { #{logger(step, "Failed #{i}" )}; exit 1; }"
 					end
 				else
 					command = generate_cmd_line(step.run,sample,step)
-					self.command_line << "#{command} || { echo \"FAILED `date`: #{step.name} \" ; exit 1; }"
+					# TODO verify that logger works in this case
+					# self.command_line << "#{command} || { echo \"FAILED `date`: #{step.name} \" ; exit 1; }"
+					self.command_line << "#{command} || { #{logger(step, "Failed" )}; exit 1; }"
 				end
-				self.command_line << "echo \"#{step.name} finished `date`.\""
+				self.command_line << logger(step, "finished")
                 self.command_line << "touch #{working_dir}/checkpoint"
 				self.command_line << "else"
-				self.command_line << "echo \"#{step.name} already executed, skip this step `date`.\""
+				self.command_line << logger(step, "already executed, skip this step")
 				self.command_line << "fi"
 			
 				# check if a temporary (i.e. different from 'output') directory is set
@@ -246,6 +254,18 @@ module Bio
 				end
 				cmd_line.join(sep)
 			end
+
+			# log a step according to the selected adapter
+			def logger(step, message)  
+				case self.log
+					when "stdin"
+					   "echo \"#{step.name} #{name} #{message} `date`.\""
+					when "syslog"
+						 "logger -t PIPENGINE \"#{step.name} #{name} #{message}\""
+					when "fluentd"
+						 "curl -X POST -d 'json={\"source\":\"PIPENGINE\", \"step\":\"#{step.name}\", \"message\":\"#{message}\", \"job_id\":\"#{name}\"}' #{self.log_adapter}"
+					end
+			end #logger
 
 		end
 	end
