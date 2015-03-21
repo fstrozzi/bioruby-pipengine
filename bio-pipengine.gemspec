@@ -15,7 +15,8 @@ Gem::Specification.new do |s|
   s.executables = ["pipengine"]
   s.extra_rdoc_files = [
     "LICENSE.txt",
-    "README.md"
+    "README.md",
+		"VERSION"
   ]
   s.files = [
     "lib/bio-pipengine.rb",
