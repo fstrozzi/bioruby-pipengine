@@ -79,18 +79,18 @@ module Bio
 						command = generate_cmd_line(cmd,sample,step)
 						# TODO verify that logger works in this case
 						# self.command_line << "#{command} || { echo \"FAILED `date`: #{step.name}:#{i}\" ; exit 1; }"
-						self.command_line << "#{command} || { #{logger(step, "Failed #{i}" )}; exit 1; }"
+						self.command_line << "#{command} || { #{logger(step, "FAILED #{i}" )}; exit 1; }"
 					end
 				else
 					command = generate_cmd_line(step.run,sample,step)
 					# TODO verify that logger works in this case
 					# self.command_line << "#{command} || { echo \"FAILED `date`: #{step.name} \" ; exit 1; }"
-					self.command_line << "#{command} || { #{logger(step, "Failed" )}; exit 1; }"
+					self.command_line << "#{command} || { #{logger(step, "FAILED" )}; exit 1; }"
 				end
 				self.command_line << logger(step, "finished")
                 self.command_line << "touch #{working_dir}/checkpoint"
 				self.command_line << "else"
-				self.command_line << logger(step, "already executed, skip this step")
+				self.command_line << logger(step, "already executed, skipping this step")
 				self.command_line << "fi"
 			
 				# check if a temporary (i.e. different from 'output') directory is set
@@ -132,12 +132,10 @@ module Bio
 							torque_job.m = "b"
 							torque_job.M = options[:mail_start]
 						end
-					end
-					
+					end	
 					torque_job.q = options[:pbs_queue] if options[:pbs_queue]
-
 					torque_job.script = self.command_line.join("\n")+"\n"
-                end
+        end
 			end
 
 			def to_script(options)
