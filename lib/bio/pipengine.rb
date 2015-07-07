@@ -5,18 +5,7 @@ module Bio
 
 			# reading the yaml files
 			pipeline = YAML.load_file options[:pipeline]
-			samples_file = YAML.load_file options[:samples_file]
-			samples_file["samples"].each do |k,v|
-				if v.kind_of? Hash
-					samples_file["samples"][k] = Hash[samples_file["samples"][k].map{ |key, value| [key.to_s, value.to_s] }] 
-				else
-					samples_file["samples"][k] = v.to_s
-				end
-			end
-			# make sure everything in Samples and Resources is converted to string
-			#samples_file["samples"] = Hash[samples_file["samples"].map{ |key, value| [key.to_s, value.to_s] }] 
-			samples_file["resources"] = Hash[samples_file["resources"].map {|k,v| [k.to_s, v.to_s]}]	
-			
+			samples_file = load_samples_file options[:samples_file]
 			# pre-running checks	
 			check_steps(options[:steps],pipeline)	
 			check_samples(options[:samples],samples_file) if options[:samples]
@@ -50,7 +39,7 @@ module Bio
 			
 			unless run_multi # there are no multi-samples steps, so iterate on samples and create one job per sample
 				samples_list.each_key do |sample_name|
-					sample = Bio::Pipengine::Sample.new(sample_name,samples_list[sample_name])
+					sample = Bio::Pipengine::Sample.new(sample_name,samples_list[sample_name],options[:group])
 					create_job(samples_file,pipeline,samples_list,options,sample)
 				end
 			end
@@ -69,7 +58,7 @@ module Bio
 				end
 			else
 				samples_obj = {}
-				samples_list.each_key {|sample_name| samples_obj[sample_name] = Bio::Pipengine::Sample.new(sample_name,samples_list[sample_name])}
+				samples_list.each_key {|sample_name| samples_obj[sample_name] = Bio::Pipengine::Sample.new(sample_name,samples_list[sample_name],options[:group])}
 				create_job(samples_file,pipeline,samples_list,options,samples_obj)
 				return true
 			end
@@ -229,6 +218,22 @@ module Bio
 			self.add_job(job, pipeline, step.pre, sample) if step.has_prerequisite?
 			job.add_step(step,sample) # adding step command lines to the job	
 		end #add_job
+
+		def self.load_samples_file(file)
+			samples_file = YAML.load_file file
+			samples_file["samples"].each do |k,v|
+				if v.kind_of? Hash
+					samples_file["samples"][k] = Hash[samples_file["samples"][k].map{ |key, value| [key.to_s, value.to_s] }] 
+				else
+					samples_file["samples"][k] = v.to_s
+				end
+			end
+			# make sure everything in Samples and Resources is converted to string
+			#samples_file["samples"] = Hash[samples_file["samples"].map{ |key, value| [key.to_s, value.to_s] }] 
+			samples_file["resources"] = Hash[samples_file["resources"].map {|k,v| [k.to_s, v.to_s]}]	
+			samples_file 
+		end
+
 		
 	end
 end
