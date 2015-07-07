@@ -15,7 +15,8 @@ Gem::Specification.new do |s|
   s.executables = ["pipengine"]
   s.extra_rdoc_files = [
     "LICENSE.txt",
-    "README.md"
+    "README.md",
+    "VERSION"
   ]
   s.files = [
     "lib/bio-pipengine.rb",
@@ -37,6 +38,7 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<uuid>, [">= 0"])
       s.add_runtime_dependency(%q<trollop>, [">= 0"])
       s.add_runtime_dependency(%q<colorize>, [">= 0"])
+      s.add_runtime_dependency(%q<torque_rm>, [">= 0"])
       s.add_development_dependency(%q<shoulda>, [">= 0"])
       s.add_development_dependency(%q<rdoc>, ["~> 3.12"])
       s.add_development_dependency(%q<bundler>, ["> 1.0.0"])
