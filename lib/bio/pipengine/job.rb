@@ -112,37 +112,27 @@ module Bio
 
 			end
 
-			# convert the job object into a TORQUE::Qsub object
-			def to_pbs(options)
-				TORQUE::Qsub.new(options) do |torque_job|
-					torque_job.name = self.name
-					torque_job.working_directory = self.output # where pbs scripts and stdout / stderr files will be saved
-					if options[:pbs_opts] 
-						torque_job.l = options[:pbs_opts]
+			def to_script(options)
+				File.open(self.output+"/"+self.name+'.pbs','w') do |file|
+					file.puts "#!/usr/bin/env bash"
+					file.puts "#PBS -N #{self.name}"
+					file.puts "#PBS -d #{self.output}"
+					file.puts "#PBS -q #{options[:pbs_queue]}"
+					if options[:pbs_opts]
+						file.puts "#PBS -l #{options[:pbs_opts].join(",")}"
 					else
 						l_string = []
 						l_string << "nodes=#{self.nodes}:ppn=#{self.cpus}"
 						l_string << "mem=#{self.mem}" if self.mem
-						torque_job.l = l_string
-						if options[:mail_exit]
-							torque_job.m = "e"
-							torque_job.M = options[:mail_exit]
-						end
-						if options[:mail_start]
-							torque_job.m = "b"
-							torque_job.M = options[:mail_start]
-						end
-					end	
-					torque_job.q = options[:pbs_queue] if options[:pbs_queue]
-					torque_job.script = self.command_line.join("\n")+"\n"
-        end
-			end
-
-			def to_script(options)
-			  File.open(self.name+'.sh','w') do |file|
-		          file.puts "#!/usr/bin/env bash -l"
-			      file.puts self.command_line.join("\n")
+						file.puts "#PBS -l #{l_string.join(",")}"
+					end
+					file.puts self.command_line.join("\n")
 			  end
+			end
+		
+			def submit
+				job_id = `qsub #{self.output}+"/"+#{self.name}.pbs`
+			  puts "#{job_id}".green
 			end
 
 		private

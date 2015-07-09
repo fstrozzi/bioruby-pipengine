@@ -106,13 +106,12 @@ module Bio
 				self.add_job(job, pipeline, step_name, sample)
 			end
 
-			if options[:dry] #&& options[:spooler] == "script"
+			if options[:dry]
 				job.to_script(options)
 			else
-			  script = job.to_pbs(options) # converting the Job into a TORQUE::Qsub PBS compatible object
-			  job_id = script.submit(options)
-			  puts "#{job_id}".green unless options[:dry]
-      end
+				job.to_script(options)
+				job.submit
+			end
 		end
 
 		# check if sample exists

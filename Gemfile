@@ -4,7 +4,7 @@ source "http://rubygems.org"
 #   gem "activesupport", ">= 2.3.5"
 gem "trollop"
 gem "colorize"
-gem "torque_rm"
+#gem "torque_rm"
 gem "terminal-table"
 # Add dependencies to develop your gem here.
 # Include everything needed to run rake, tests, features, etc.
