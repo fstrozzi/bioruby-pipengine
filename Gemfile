@@ -5,7 +5,12 @@ source "http://rubygems.org"
 gem "trollop"
 gem "colorize"
 #gem "torque_rm"
-gem "terminal-table"
+#gem "terminal-table"
+
+platforms :jruby do
+	gem 'warbler'
+end
+
 # Add dependencies to develop your gem here.
 # Include everything needed to run rake, tests, features, etc.
 group :development do
