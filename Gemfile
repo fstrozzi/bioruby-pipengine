@@ -11,3 +11,7 @@ platforms :jruby do
 	gem "warbler", ">= 1.4.8"
 end
 
+group :development do
+	gem 'jeweler'
+end
+
