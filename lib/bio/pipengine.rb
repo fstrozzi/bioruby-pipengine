@@ -1,6 +1,6 @@
 module Bio
 	module Pipengine
-	
+		@@logger_error = Logger.new(STDERR)
 		def self.run(options)
 
 			# reading the yaml files
@@ -62,7 +62,7 @@ module Bio
 			
 			if step_multi.include? false
 				if step_multi.uniq.size > 1
-					puts "\nAbort! You are trying to run both multi-samples and single sample steps in the same job".red
+					@@logger_error.error "\nAbort! You are trying to run both multi-samples and single sample steps in the same job".red
 					exit
 				else
 					return false
@@ -126,7 +126,7 @@ module Bio
 					end
 				end
 				unless samples_names.include? sample
-					puts "Sample \"#{sample}\" does not exist in sample file!".red
+					@@logger_error.error "Sample \"#{sample}\" does not exist in sample file!".red
 					exit
 				end
 			end
@@ -136,7 +136,7 @@ module Bio
 		def self.check_steps(passed_steps,pipeline)
 			passed_steps.each do |step|
 				unless pipeline["steps"].keys.include? step
-					puts "Step \"#{step}\" does not exist in pipeline file!".red
+					@@logger_error.error "Step \"#{step}\" does not exist in pipeline file!".red
 					exit
 				end
 			end

@@ -1,8 +1,11 @@
 module Bio
+	
 	module Pipengine
 		
 		class Job
 			
+			@@logger = Logger.new(STDOUT)
+			@@logger_error = Logger.new(STDERR)
 			# a Job object holds information on a job to be submitted
 			# samples_groups and samples_obj are used to store information in case of steps that require to combine info
 			# from multiple samples
@@ -132,7 +135,7 @@ module Bio
 		
 			def submit
 				job_id = `qsub #{self.output}+"/"+#{self.name}.pbs`
-			  puts "#{job_id}".green
+				@@logger.info "#{job_id}".green
 			end
 
 		private
@@ -171,13 +174,13 @@ module Bio
 				
 				# for placeholders like <mapping/sample>
 				tmp_cmd.scan(/<(\S+)\/sample>/).map {|e| e.first}.each do |input_folder|
-					warn "Directory #{self.output+"/"+sample.name+"/"+input_folder} not found".magenta unless Dir.exists? self.output+"/"+sample.name+"/"+input_folder
+					@@logger.info "Directory #{self.output+"/"+sample.name+"/"+input_folder} not found".magenta unless Dir.exists? self.output+"/"+sample.name+"/"+input_folder
 					tmp_cmd = tmp_cmd.gsub(/<#{input_folder}\/sample>/,self.output+"/"+sample.name+"/"+input_folder+"/"+sample.name)
 				end
 				
 				# for placeholders like <mapping/>
 				tmp_cmd.scan(/<(\S+)\/>/).map {|e| e.first}.each do |input_folder|
-					warn "Directory #{self.output+"/"+sample.name+"/"+input_folder} not found".magenta unless Dir.exists? self.output+"/"+sample.name+"/"+input_folder
+					@@logger.info "Directory #{self.output+"/"+sample.name+"/"+input_folder} not found".magenta unless Dir.exists? self.output+"/"+sample.name+"/"+input_folder
 					tmp_cmd = tmp_cmd.gsub(/<#{input_folder}\/>/,self.output+"/"+sample.name+"/"+input_folder+"/")
 				end
 				return tmp_cmd
