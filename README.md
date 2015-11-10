@@ -105,6 +105,8 @@ With this mode, PipEngine will submit pipeline jobs to the scheduler.
                                 (the order matters)
              --group, -g <s>:   Specify the group of samples to run the
                                 pipeline steps on (do not specify --multi)
+              --allgroups -a:   Apply the step(s) to all the groups defined into
+                                the samples file
               --name, -n <s>:   Analysis name
         --output-dir, -o <s>:   Output directory (override standard output
                                 directory names)

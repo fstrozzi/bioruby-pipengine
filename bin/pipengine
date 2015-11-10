@@ -27,6 +27,7 @@ when "run"
 		opt :create_samples, "Create samples.yml file from a Sample directory (only for CASAVA projects)", :short => "c", :type => :strings
 		opt :multi, "List of samples to be processed by a given step (the order matters)", :short => "m", :type => :strings
 		opt :group, "Specify the group of samples to run the pipeline steps on (do not specify --multi)", :short => "g", :type => :string
+		opt :allgroups, "Apply the step(s) to all the groups defined into the samples file", :short => "a"
 		opt :name, "Analysis name", :short => "n", :type => :string
 		opt :output_dir, "Output directory (override standard output directory names)", :short => "o", :type => :string
 		opt :pbs_opts, "PBS options", :type => :strings, :short => "b"
@@ -94,7 +95,14 @@ elsif options[:pipeline] && options[:samples_file]
 		abort("File not found: #{options[:pipeline]}".red) unless File.exists? options[:pipeline]
 		abort("File not found: #{options[:samples_file]}".red) unless File.exists? options[:samples_file]
 		abort("Please provide a valid step name with the --step parameter".red) unless options[:steps]
-		Bio::Pipengine.run(options)
+		if options[:allgroups]
+			Bio::Pipengine.load_samples_file(options[:samples_file])["samples"].keys.each do |group|
+				options[:group] = group
+				Bio::Pipengine.run(options)	
+			end
+		else
+			Bio::Pipengine.run(options)
+		end
 	end
 end
 
