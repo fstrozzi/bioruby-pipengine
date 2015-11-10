@@ -7,6 +7,26 @@ PipEngine will generate runnable shell scripts, already configured for the PBS/T
 
 PipEngine is best suited for NGS pipelines, but it can be used for any kind of pipeline that can be runned on a job scheduling system.
 
+Installation
+============
+
+If you already have Ruby, just install PipEngine using RubyGems:
+
+```shell
+gem install bio-pipengine
+```
+
+If you don't have Ruby installed, first follow this simple step to get it:
+
+```shell
+curl -sSL https://get.rvm.io | bash -s stable
+```
+
+and then install PipEngine using RubyGems:
+
+```shell
+gem install bio-pipengine
+```
 
 :: Topics ::
 ============

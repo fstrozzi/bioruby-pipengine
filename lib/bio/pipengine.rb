@@ -91,7 +91,7 @@ module Bio
 			job.samples_obj = sample if sample.kind_of? Hash
 			# cycling through steps and add command lines to the job
 			options[:steps].each do |step_name| 
-				# TODO WARNING this can add multiple times the same step is the are multi dependencies
+				# TODO WARNING this can add multiple times the same step if the are multi dependencies
 				self.add_job(job, pipeline, step_name, sample)
 			end
 
@@ -101,7 +101,7 @@ module Bio
 			  script = job.to_pbs(options) # converting the Job into a TORQUE::Qsub PBS compatible object
 			  job_id = script.submit(options)
 			  puts "#{job_id}".green unless options[:dry]
-            end
+      end
 		end
 
 		# check if sample exists
