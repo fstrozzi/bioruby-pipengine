@@ -425,6 +425,39 @@ echo '<multi1>' | sed -e 's/,/ /g' | xargs ls >> gtf_list.txt
 
 This line generates the input file for Cuffcompare with the list of the transcripts.gtf files for each sample, generated using the 'multi' definition in the pipeline YAML and the line passed through the **-m** parameter, but getting rid of the commas that separate sample names. It's a workaround and it's not a super clean solution, but PipEngine wants to be a general tool not binded to specific corner cases and it always lets the user define it's own custom command lines to manage particular steps, as in this case.
 
+Composable & Modular steps definition
+------------------------------------
+
+Since now steps are defined inside a single YAML file. This approach is usefult to have a stable and reproducible analysis pipeline. But what if, multiple users whant to collaborate on the same pipeline improving it and, most importantly, re-using the same steps in different analyses ? What happend is a proliferation of highly similar pipelines that are very complicate to compare and to maintain over time.
+In this scenario, the very first thing that a developer imagine is the ability to include external files, unfortunately YAML does not implement this feature. A possible workaround, remember that we are in the Ruby land, is to embed some Ruby code into the YAML file and include external steps.
+
+Creating a file `mapping.yml` that describe the mapping step with BWA
+
+```
+mapping:
+  cpu: 8
+  desc: Run BWA MEM and generates a sorted BAM file
+  run:
+   - <bwa> mem -t <cpu> -R '@RG\tID:<flowcell>\tLB:<sample>\tPL:ILLUMINA\tPU:<flowcell>\tCN:PTP\tSM:<sample>' <index> <trim/sample>.trim.fastq | <samtools> view -bS - > <sample>.bam
+   - <samtools> sort -@ <cpu> <sample>.bam <sample>.sort
+   - rm -f <sample>.bam
+```
+
+is then possible to include the `mapping.yml` file inside your pipeline with a snipped of Ruby code `<%= include :name_of_the_step, "file_step.yml" %>
+Right now is very important that you place the tag at the very first start of the line ( no spaces at the beginning of the line)
+
+```
+steps:
+<%= include :mapping, "./mapping.yml" %>
+
+  index:
+    desc: Make BAM index
+    run: <samtools> index <mapping/sample>.sort.bam
+````
+
+are later run pipengine as usual.
+TODO: Dump the whole pipeline file for reproducibility purposes.
+
 
 :: What happens at run-time ::
 ==============================

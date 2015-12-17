@@ -1,10 +1,21 @@
 module Bio
 	module Pipengine
+
+		def self.include(name, filename)
+			# It supposes that the loaded YAML "step" formatted as follow, and the method will introduce spaces accordingly with the usual pipengine format style.
+			"""
+mapping:
+  desc: Description of the step
+  run:
+    - echo "Hello World"
+			"""
+			File.readlines(filename).map {|line| "  "+line}.join("\n")
+		end
 	
 		def self.run(options)
 
 			# reading the yaml files
-			pipeline = YAML.load_file options[:pipeline]
+			pipeline = YAML.load ERB.new(File.read(options[:pipeline])).result(binding)
 			samples_file = load_samples_file options[:samples_file]
 			# pre-running checks	
 			check_steps(options[:steps],pipeline)	
