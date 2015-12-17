@@ -2,13 +2,6 @@ module Bio
 	module Pipengine
 
 		def self.include(name, filename)
-			# It supposes that the loaded YAML "step" formatted as follow, and the method will introduce spaces accordingly with the usual pipengine format style.
-			"""
-mapping:
-  desc: Description of the step
-  run:
-    - echo "Hello World"
-			"""
 			File.readlines(filename).map {|line| "  "+line}.join("\n")
 		end
 	
