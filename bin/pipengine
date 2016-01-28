@@ -8,7 +8,7 @@ version_text = File.read File.expand_path(File.join(File.dirname(File.dirname __
 SUB_COMMANDS = %w(run jobs)
 
 
-Bio::Pipengine.check_config
+#Bio::Pipengine.check_config
 
 options = {}
 cmd = ARGV.first # get the subcommand
@@ -22,7 +22,6 @@ when "run"
 		opt :samples, "List of sample names to run the pipeline", :type => :strings, :short => "l"
 		opt :steps, "List of steps to be executed", :type => :strings, :short => "s"
 		opt :dry,"Dry run. Just create the job script without submitting it to the batch system", :short => "d"
-		opt :spooler,"Destination spooler PBS, plain shell script", :short =>"x", :type => :string, :default => "pbs"
 		opt :tmp, "Temporary output folder", :type => :string, :short => "t"
 		opt :create_samples, "Create samples.yml file from a Sample directory (only for CASAVA projects)", :short => "c", :type => :strings
 		opt :multi, "List of samples to be processed by a given step (the order matters)", :short => "m", :type => :strings
@@ -33,19 +32,17 @@ when "run"
 		opt :pbs_opts, "PBS options", :type => :strings, :short => "b"
 		opt :pbs_queue, "PBS queue", :type => :string, :short => "q"
 		opt :inspect_pipeline, "Show steps", :short => "i", :type => :string
-		opt :mail_exit, "Send an Email when the job terminates", :type => :string
-		opt :mail_start, "Send an Email when the job starts", :type => :string
 		opt :log, "Log script activities, by default stdin. Options are fluentd", :type => :string, :default => "stdin"
 		opt :log_adapter, "(stdin|syslog|fluentd) In case of fluentd use http://destination.hostname:port/yourtag", :type => :string
 	end
-when "jobs"
-	ARGV.shift
-	options[:jobs] = true
-	Trollop::options do
-		opt :job_id, "Search submitted jobs by Job ID", :type => :strings, :short => "i"
-		opt :job_name, "Search submitted jobs by Job Name", :type => :strings, :short => "n"
-		opt :delete, "Delete submitted jobs ('all' to erase everything or type one or more job IDs)", :short => "d", :type => :strings
-	end
+#when "jobs"
+#	ARGV.shift
+#	options[:jobs] = true
+#	Trollop::options do
+#		opt :job_id, "Search submitted jobs by Job ID", :type => :strings, :short => "i"
+#		opt :job_name, "Search submitted jobs by Job Name", :type => :strings, :short => "n"
+#		opt :delete, "Delete submitted jobs ('all' to erase everything or type one or more job IDs)", :short => "d", :type => :strings
+#	end
 when "-h"
 	puts banner_text
 	puts "List of available commands:\n\trun\tSubmit pipelines to the job scheduler\n\tjobs\tShow statistics and interact with running jobs\n"
@@ -64,29 +61,29 @@ Trollop::die :multi, "Specifing both --group and --multi is not allowed" if opti
 
 if options[:create_samples]
 	Bio::Pipengine.create_samples options[:create_samples]
-elsif options[:jobs]
-	if options[:job_id] 
-		Bio::Pipengine.show_stats(options[:job_id])
-	elsif options[:job_name]
-		warn "Not yet implemented"
-		exit
-	elsif options[:delete]
-		if options[:delete].empty?
-			warn "Provide one or more Job IDs or write 'all' to delete all your running jobs".red
-			exit
-		end
-		puts "Warning: this will delete the following running jobs: ".light_blue + "#{options[:delete].join(",")}".green
-		print "Are you sure? (y|n):"
-		answer = gets.chomp
-		if answer == "y"
-			Bio::Pipengine.delete_jobs(options[:delete])
-		else
-			puts "Aborting..."
-			exit
-		end
-	else
-		Bio::Pipengine.show_stats(["all"])
-	end
+#elsif options[:jobs]
+#	if options[:job_id] 
+#		Bio::Pipengine.show_stats(options[:job_id])
+#	elsif options[:job_name]
+#		warn "Not yet implemented"
+#		exit
+#	elsif options[:delete]
+#		if options[:delete].empty?
+#			warn "Provide one or more Job IDs or write 'all' to delete all your running jobs".red
+#			exit
+#		end
+#		puts "Warning: this will delete the following running jobs: ".light_blue + "#{options[:delete].join(",")}".green
+#		print "Are you sure? (y|n):"
+#		answer = gets.chomp
+#		if answer == "y"
+#			Bio::Pipengine.delete_jobs(options[:delete])
+#		else
+#			puts "Aborting..."
+#			exit
+#		end
+#	else
+#		Bio::Pipengine.show_stats(["all"])
+#	end
 elsif options[:pipeline] && options[:samples_file]
 	if options[:inspect_pipeline]
 		Bio::Pipengine.inspect_steps(options[:inspect_pipeline])
