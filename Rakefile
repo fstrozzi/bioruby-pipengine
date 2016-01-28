@@ -19,8 +19,8 @@ Jeweler::Tasks.new do |gem|
   gem.license = "MIT"
   gem.summary = %Q{A pipeline manager}
   gem.description = %Q{A pipeline manager}
-  gem.email = "francesco.strozzi@gmail.com"
-  gem.authors = ["Francesco Strozzi"]
+  gem.email = ["francesco.strozzi@gmail.com", "ilpuccio.febo@gmail.com"]
+  gem.authors = ["Francesco Strozzi", "Raoul Jean Pierre Bonnal"]
   gem.files = Dir.glob("lib/**/*.rb")
 	gem.files << "VERSION"
 	# dependencies defined in Gemfile

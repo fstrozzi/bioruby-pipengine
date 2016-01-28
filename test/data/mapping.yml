@@ -1,0 +1,7 @@
+mapping:
+  cpu: 8
+  desc: Run BWA MEM and generates a sorted BAM file
+  run:
+   - <bwa> mem -t <cpu> -R '@RG\tID:<flowcell>\tLB:<sample>\tPL:ILLUMINA\tPU:<flowcell>\tCN:PTP\tSM:<sample>' <index> <trim/sample>.trim.fastq | <samtools> view -bS - > <sample>.bam
+   - <samtools> sort -@ <cpu> <sample>.bam <sample>.sort
+   - rm -f <sample>.bam

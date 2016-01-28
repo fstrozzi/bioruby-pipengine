@@ -1,0 +1,42 @@
+
+pipeline: gbs
+
+resources:
+  fastqc: /storage/software/FastQC/fastqc
+  bwa: /storage/software/bwa-0.7.5a/bwa
+  samtools: /storage/software/samtools
+  bgzip: /storage/software/tabix-0.2.6/bgzip
+  tabix: /storage/software/tabix-0.2.6/tabix
+  bcftools: /storage/software/bcftools
+  vcfutils: /storage/software/vcfutils.pl
+  adapters: /storage/software/Trimmomatic-0.30/adapters/TruSeq3-PE.fa
+  trimmomatic: /storage/software/Trimmomatic-0.30/trimmomatic-0.30.jar
+  gatk_jar: /storage/software/GenomeAnalysisTK-2.7-2-g6bda569/GenomeAnalysisTK.jar
+
+steps:
+<%= include :mapping, "./mapping.yml" %>
+
+  index:
+    desc: Make BAM index
+    run: <samtools> index <mapping/sample>.sort.bam
+
+  gatk:
+    desc: Run GATK to perform SNP and InDel calling, then compress and index the VCF file
+    multi: -I <realign/sample>.final.bam
+    run: 
+     - java -Xmx4g -jar <gatk_jar> -T UnifiedGenotyper <multi> -R <genome> -mbq 30 -o all.gatk.vcf -nt <cpu> -glm BOTH
+     - <bgzip> all.gatk.vcf
+     - <tabix> -p vcf all.gatk.vcf.gz
+    cpu: 20
+    nodes: 2
+
+  root_step:
+    desc: root step to test dependencies
+    run:
+     - echo "root"
+
+  child_step:
+    desc: child step to test dependencies
+    pre: root_step
+    run:
+      - echo "I am the child"
