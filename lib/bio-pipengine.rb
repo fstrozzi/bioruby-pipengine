@@ -7,6 +7,7 @@ require 'colorize'
 #require 'terminal-table'
 require 'fileutils'
 require 'logger'
+require 'erb'
 
 require 'bio/pipengine/sample'
 require 'bio/pipengine/step'
