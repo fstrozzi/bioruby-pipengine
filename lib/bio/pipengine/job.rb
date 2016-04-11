@@ -134,7 +134,7 @@ module Bio
 			end
 		
 			def submit
-				job_id = `qsub #{self.output}+"/"+#{self.name}.pbs`
+				job_id = `qsub #{self.output}/#{self.name}.pbs`
 				@@logger.info "#{job_id}".green
 			end
 
