@@ -50,6 +50,24 @@ module Bio
 			end
 		end
 
+		def self.parse_tag_option(option_tag)
+			if !option_tag
+				return {}	
+			else
+				tags = {}
+				option_tag.each do |tag|
+					values = tag.split("=")
+					if values.empty?
+						@@logger_error.error "\nAbort! Unrecognized values for tag option, please provide the tags as follows: tag1=value1 tag2=value2".red
+						exit
+					else
+						tags.merge! Hash[*values.flatten]
+					end
+				end
+				return tags
+			end	
+		end
+
 		# handle steps that run on multiple samples (i.e. sample groups job)
 		def self.check_and_run_multi(samples_file,pipeline,samples_list,options)
 			step_multi = options[:steps].map {|s| Bio::Pipengine::Step.new(s,pipeline["steps"][s]).is_multi?}
@@ -86,8 +104,11 @@ module Bio
 			job.local = options[:tmp]
 			job.custom_output = options[:output_dir]
 			job.custom_name = (options[:name]) ? options[:name] : nil
+			# Adding pipeline and samples resources
 			job.add_resources pipeline["resources"]
 			job.add_resources samples_file["resources"]
+			# Adding resource tag from the command line which can overwrite resources defined in the pipeline and samples files
+			job.add_resources parse_tag_option(options[:tag])
 			#setting the logging system
 			job.log = options[:log]
 			job.log_adapter = options[:log_adapter]
