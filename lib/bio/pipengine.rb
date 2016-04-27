@@ -11,6 +11,18 @@ module Bio
 			# reading the yaml files
 			pipeline = YAML.load ERB.new(File.read(options[:pipeline])).result(binding)
 			samples_file = load_samples_file options[:samples_file]
+			
+			# make sure all sample names are always Strings
+			converted_samples_list = {}
+			samples_file["samples"].each_key do |sample|
+				if samples_file["samples"][sample].kind_of? Hash # it's a group of samples
+					converted_samples_list[sample.to_s] = Hash[samples_file["samples"][sample].map{ |k, v| [k.to_s, v] }]
+				else
+					converted_samples_list[sample.to_s] = samples_file["samples"][sample]
+				end
+			end
+			samples_file["samples"] = converted_samples_list # replacing original samples hash with the converted one
+
 			# pre-running checks	
 			check_steps(options[:steps],pipeline)	
 			check_samples(options[:samples],samples_file) if options[:samples]
