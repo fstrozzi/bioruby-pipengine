@@ -44,7 +44,7 @@ module Bio
 			
 			unless run_multi # there are no multi-samples steps, so iterate on samples and create one job per sample
 				samples_list.each_key do |sample_name|
-					sample = Bio::Pipengine::Sample.new(sample_name,samples_list[sample_name],options[:group])
+						sample = Bio::Pipengine::Sample.new(sample_name.to_s,samples_list[sample_name],options[:group])
 					create_job(samples_file,pipeline,samples_list,options,sample)
 				end
 			end
@@ -170,10 +170,10 @@ module Bio
 			puts "\n"
 		end
 		
-		# create the samples.yml file (CASAVA ONLY!)
+		# create the samples.yml file
 		def self.create_samples(dir)
 				File.open("samples.yml","w") do |file|
-					file.write "resources:\n\soutput: #{FileUtils.pwd}\n\nsamples:\n"
+						file.write "resources:\n\soutput: #{FileUtils.pwd}\n\nsamples:\n"
 					samples = Hash.new {|hash,key| hash[key] = []}
 					dir.each do |path|
 						projects = Dir.glob(path+"/*").sort.select {|folders| folders.split("/")[-1] =~/Project_/}
