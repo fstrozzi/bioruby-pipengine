@@ -16,7 +16,7 @@ If you already have Ruby, just install PipEngine using RubyGems:
 gem install bio-pipengine
 ```
 
-If you don't have Ruby installed we reccomend you use Anaconda Package Manager.
+If you don't have Ruby installed we reccomend you use the Anaconda Package Manager.
 
 Download the installer from [here](http://conda.pydata.org/miniconda.html) and once installed you can simply type:
 
@@ -654,4 +654,4 @@ If a specific queue needs to be selected for sending the jobs to PBS, the ```--p
 Copyright
 =========
 
-(c)2013 Francesco Strozzi, Raoul Jean Pierre Bonnal 
+(c)2016 Francesco Strozzi, Raoul Jean Pierre Bonnal 
