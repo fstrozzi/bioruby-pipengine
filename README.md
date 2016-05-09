@@ -3,9 +3,9 @@ PipEngine
 
 A simple launcher for complex biological pipelines.
 
-PipEngine will generate runnable shell scripts, already configured for the PBS/Torque job scheduler, for each sample in the pipeline. It allows to run a complete pipeline or just a single step or a few steps.
+PipEngine will generate runnable shell scripts, already configured for the PBS/Torque job scheduler, for each sample in the pipeline. It allows to run a complete pipeline or just a single step depending on the needs.
 
-PipEngine is best suited for NGS pipelines, but it can be used for any kind of pipeline that can be runned on a job scheduling system.
+PipEngine is best suited for NGS pipelines, but it can be used for any kind of pipeline that can be runned on a job scheduling system and that are "sample" centric, i.e. you have from one side a list of samples with their corresponding raw data, and from the other side a pipeline that you would like to apply to them.
 
 Installation
 ============
