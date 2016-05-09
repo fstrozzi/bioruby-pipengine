@@ -654,4 +654,4 @@ If a specific queue needs to be selected for sending the jobs to PBS, the ```--p
 Copyright
 =========
 
-(c)2016 Francesco Strozzi, Raoul Jean Pierre Bonnal 
+&copy;2016 Francesco Strozzi, Raoul Jean Pierre Bonnal 
