@@ -120,7 +120,7 @@ module Bio
 					file.puts "#!/usr/bin/env bash"
 					file.puts "#PBS -N #{self.name}"
 					file.puts "#PBS -d #{self.output}"
-					file.puts "#PBS -q #{options[:pbs_queue]}"
+					file.puts "#PBS -q #{options[:pbs_queue]}" if options[:pbs_queue]
 					if options[:pbs_opts]
 						file.puts "#PBS -l #{options[:pbs_opts].join(",")}"
 					else
