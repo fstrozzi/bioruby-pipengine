@@ -49,7 +49,7 @@ module Bio
 			########### START ###########
 
 			# create output directory (jobs scripts will be saved there)
-			FileUtils.mkdir_p samples_file["resources"]["output"] unless options[:dry] #&& options[:spooler]!="pbs"
+			FileUtils.mkdir_p samples_file["resources"]["output"] #unless options[:dry] #&& options[:spooler]!="pbs"
 
 			# check if the requested steps are multi-samples
 			run_multi = check_and_run_multi(samples_file,pipeline,samples_list,options)
