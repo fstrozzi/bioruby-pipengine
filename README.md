@@ -16,10 +16,12 @@ If you already have Ruby, just install PipEngine using RubyGems:
 gem install bio-pipengine
 ```
 
-If you don't have Ruby installed, first follow this simple step to get it:
+If you don't have Ruby installed we reccomend you use Anaconda Package Manager.
+
+Download the installer from [here](http://conda.pydata.org/miniconda.html) and once installed you can simply type:
 
 ```shell
-curl -sSL https://get.rvm.io | bash -s stable
+conda install -c bioconda ruby
 ```
 
 and then install PipEngine using RubyGems:
