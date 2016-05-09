@@ -153,6 +153,12 @@ module Bio
 				else
 					cmd = sub_placeholders(cmd,sample,step) # normal step, perform usual substitutions
 				end
+				
+				# Check that all placeholders have been substituted, if not terminate with an error
+				cmd.scan(/<\S+>/).each do |unsubstituted_tag|
+					@@logger_error.error("Found an unsubstituted tag #{unsubstituted_tag} . Terminating the execution".red)
+					exit
+				end
 				return cmd
 			end
 		
