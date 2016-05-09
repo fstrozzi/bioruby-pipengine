@@ -58,27 +58,7 @@ PipEngine it's divided into two main sections:
 > pipengine -h
 List of available commands:
 	run		Submit pipelines to the job scheduler
-	jobs	Show statistics and interact with running jobs
 ```
-
-Since PipEngine uses the [TORQUE-RM](https://github.com/helios/torque_rm) gem to interact with the job scheduler, at the first run PipEngine will ask few questions to prepare the required configuration file (e.g. provide IP address and username to connect via SSH to the PBS Server or Masternode).
-
-Command line for JOBS mode
---------------------------
-With this mode, PipEngine will interact with the job scheduler (Torque/PBS for now) and will allow performing searches on submitted jobs and send delete commands to remove jobs from the scheduler.
-
-```shell
-> pipengine jobs [options]
-```
-
-
-**Parameters**
-```shell
-    --job-id, -i <s+>:   Search submitted jobs by Job ID
-  --job-name, -n <s+>:   Search submitted jobs by Job Name
-    --delete, -d <s+>:   Delete submitted jobs ('all' to erase everything or type one or more job IDs)
-```
-
 
 Command line for RUN mode
 -------------------------
@@ -92,36 +72,25 @@ With this mode, PipEngine will submit pipeline jobs to the scheduler.
 
 **Parameters**
 ```shell
-          --pipeline, -p <s>:   YAML file with pipeline and sample details
-                                (default: pipeline.yml)
-      --samples-file, -f <s>:   YAML file with samples name and directory paths
-                                (default: samples.yml)
-          --samples, -l <s+>:   List of sample names to run the pipeline
-            --steps, -s <s+>:   List of steps to be executed
-                   --dry, -d:   Dry run. Just create the job script without
-                                submitting it to the batch system
-               --tmp, -t <s>:   Temporary output folder
-   --create-samples, -c <s+>:   Create samples.yml file from a Sample directory
-                                (only for CASAVA projects)
-            --multi, -m <s+>:   List of samples to be processed by a given step
-                                (the order matters)
-             --group, -g <s>:   Specify the group of samples to run the
-                                pipeline steps on (do not specify --multi)
-              --allgroups -a:   Apply the step(s) to all the groups defined into
-                                the samples file
-              --name, -n <s>:   Analysis name
-        --output-dir, -o <s>:   Output directory (override standard output
-                                directory names)
-         --pbs-opts, -b <s+>:   PBS options
-         --pbs-queue, -q <s>:   PBS queue
-  --inspect-pipeline, -i <s>:   Show steps
-         --mail-exit, -a <s>:   Send an Email when the job terminates
-        --mail-start, -r <s>:   Send an Email when the job starts
-                   --log <s>:   Log script activities, by default stdin.
-                                Options are fluentd (default: stdin)
-       --log-adapter, -e <s>:   (stdin|syslog|fluentd) In case of fluentd use
-                                http://destination.hostname:port/yourtag
-                  --help, -h:   Show this message
+  -p, --pipeline=<s>            YAML file with pipeline and sample details (default: pipeline.yml)
+  -f, --samples-file=<s>        YAML file with samples name and directory paths (default: samples.yml)
+  -l, --samples=<s+>            List of sample names to run the pipeline
+  -s, --steps=<s+>              List of steps to be executed
+  -d, --dry                     Dry run. Just create the job script without submitting it to the batch system
+  -t, --tmp=<s>                 Temporary output folder
+  -c, --create-samples=<s+>     Create samples.yml file from a Sample directory (only for CASAVA projects)
+  -m, --multi=<s+>              List of samples to be processed by a given step (the order matters)
+  -g, --group=<s>               Specify the group of samples to run the pipeline steps on (do not specify --multi)
+  -a, --allgroups               Apply the step(s) to all the groups defined into the samples file
+  -n, --name=<s>                Analysis name
+  -o, --output-dir=<s>          Output directory (override standard output directory names)
+  -b, --pbs-opts=<s+>           PBS options
+  -q, --pbs-queue=<s>           PBS queue
+  -i, --inspect-pipeline=<s>    Show steps
+  --log=<s>                     Log script activities, by default stdin. Options are fluentd (default: stdin)
+  -e, --log-adapter=<s>         (stdin|syslog|fluentd) In case of fluentd use http://destination.hostname:port/yourtag
+  --tag=<s+>                    Overwrite tags present in samples.yml and pipeline.yml files (e.g. tag1=value1 tag2=value2)
+  -h, --help                    Show this message
 ```
 
 PipEngine accepts two input files:
