@@ -112,6 +112,7 @@ With this mode, PipEngine will submit pipeline jobs to the scheduler.
                                 directory names)
          --pbs-opts, -b <s+>:   PBS options
          --pbs-queue, -q <s>:   PBS queue
+     --pbs-set-group, -w <s>:   PBS -W group_list (default: )
   --inspect-pipeline, -i <s>:   Show steps
          --mail-exit, -a <s>:   Send an Email when the job terminates
         --mail-start, -r <s>:   Send an Email when the job starts
@@ -679,6 +680,18 @@ to have PipEngine translate this into:
 within the job script.
 
 If a specific queue needs to be selected for sending the jobs to PBS, the ```--pbs-queue``` (short version **-q**) parameter can be used. This will pass to the ```qsub``` command the ```-q <queue name>``` taken from the command line.
+
+Working in a team can be usefull to share the stdout and stderr of PBS, usually those files (also joined in one single file) have a restricted access just to the owner. To set the group of those files pipengine will automaticcally set the group to the usergroup (primary) by default, otherwise specifying a different group it will be setted accordibly.
+
+```shell
+--pbs-set-group desired_group_name
+```
+
+will become, in the shell script:
+
+```shell
+#PBS -W group_list=desired_group_name
+```
 
 Copyright
 =========
