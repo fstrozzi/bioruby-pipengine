@@ -3,9 +3,9 @@ PipEngine
 
 A simple launcher for complex biological pipelines.
 
-PipEngine will generate runnable shell scripts, already configured for the PBS/Torque job scheduler, for each sample in the pipeline. It allows to run a complete pipeline or just a single step or a few steps.
+PipEngine will generate runnable shell scripts, already configured for the PBS/Torque job scheduler, for each sample in the pipeline. It allows to run a complete pipeline or just a single step depending on the needs.
 
-PipEngine is best suited for NGS pipelines, but it can be used for any kind of pipeline that can be runned on a job scheduling system.
+PipEngine is best suited for NGS pipelines, but it can be used for any kind of pipeline that can be runned on a job scheduling system and which is "sample" centric, i.e. you have from one side a list of samples with their corresponding raw data, and from the other side a pipeline that you would like to apply to them.
 
 Installation
 ============
@@ -16,10 +16,12 @@ If you already have Ruby, just install PipEngine using RubyGems:
 gem install bio-pipengine
 ```
 
-If you don't have Ruby installed, first follow this simple step to get it:
+If you don't have Ruby installed we reccomend you use the Anaconda Package Manager.
+
+Download the installer from [here](http://conda.pydata.org/miniconda.html) and once installed you can simply type:
 
 ```shell
-curl -sSL https://get.rvm.io | bash -s stable
+conda install -c bioconda ruby
 ```
 
 and then install PipEngine using RubyGems:
@@ -56,27 +58,7 @@ PipEngine it's divided into two main sections:
 > pipengine -h
 List of available commands:
 	run		Submit pipelines to the job scheduler
-	jobs	Show statistics and interact with running jobs
 ```
-
-Since PipEngine uses the [TORQUE-RM](https://github.com/helios/torque_rm) gem to interact with the job scheduler, at the first run PipEngine will ask few questions to prepare the required configuration file (e.g. provide IP address and username to connect via SSH to the PBS Server or Masternode).
-
-Command line for JOBS mode
---------------------------
-With this mode, PipEngine will interact with the job scheduler (Torque/PBS for now) and will allow performing searches on submitted jobs and send delete commands to remove jobs from the scheduler.
-
-```shell
-> pipengine jobs [options]
-```
-
-
-**Parameters**
-```shell
-    --job-id, -i <s+>:   Search submitted jobs by Job ID
-  --job-name, -n <s+>:   Search submitted jobs by Job Name
-    --delete, -d <s+>:   Delete submitted jobs ('all' to erase everything or type one or more job IDs)
-```
-
 
 Command line for RUN mode
 -------------------------
@@ -90,36 +72,25 @@ With this mode, PipEngine will submit pipeline jobs to the scheduler.
 
 **Parameters**
 ```shell
-          --pipeline, -p <s>:   YAML file with pipeline and sample details
-                                (default: pipeline.yml)
-      --samples-file, -f <s>:   YAML file with samples name and directory paths
-                                (default: samples.yml)
-          --samples, -l <s+>:   List of sample names to run the pipeline
-            --steps, -s <s+>:   List of steps to be executed
-                   --dry, -d:   Dry run. Just create the job script without
-                                submitting it to the batch system
-               --tmp, -t <s>:   Temporary output folder
-   --create-samples, -c <s+>:   Create samples.yml file from a Sample directory
-                                (only for CASAVA projects)
-            --multi, -m <s+>:   List of samples to be processed by a given step
-                                (the order matters)
-             --group, -g <s>:   Specify the group of samples to run the
-                                pipeline steps on (do not specify --multi)
-              --allgroups -a:   Apply the step(s) to all the groups defined into
-                                the samples file
-              --name, -n <s>:   Analysis name
-        --output-dir, -o <s>:   Output directory (override standard output
-                                directory names)
-         --pbs-opts, -b <s+>:   PBS options
-         --pbs-queue, -q <s>:   PBS queue
-  --inspect-pipeline, -i <s>:   Show steps
-         --mail-exit, -a <s>:   Send an Email when the job terminates
-        --mail-start, -r <s>:   Send an Email when the job starts
-                   --log <s>:   Log script activities, by default stdin.
-                                Options are fluentd (default: stdin)
-       --log-adapter, -e <s>:   (stdin|syslog|fluentd) In case of fluentd use
-                                http://destination.hostname:port/yourtag
-                  --help, -h:   Show this message
+  -p, --pipeline=<s>            YAML file with pipeline and sample details (default: pipeline.yml)
+  -f, --samples-file=<s>        YAML file with samples name and directory paths (default: samples.yml)
+  -l, --samples=<s+>            List of sample names to run the pipeline
+  -s, --steps=<s+>              List of steps to be executed
+  -d, --dry                     Dry run. Just create the job script without submitting it to the batch system
+  -t, --tmp=<s>                 Temporary output folder
+  -c, --create-samples=<s+>     Create samples.yml file from a Sample directory (only for CASAVA projects)
+  -m, --multi=<s+>              List of samples to be processed by a given step (the order matters)
+  -g, --group=<s>               Specify the group of samples to run the pipeline steps on (do not specify --multi)
+  -a, --allgroups               Apply the step(s) to all the groups defined into the samples file
+  -n, --name=<s>                Analysis name
+  -o, --output-dir=<s>          Output directory (override standard output directory names)
+  -b, --pbs-opts=<s+>           PBS options
+  -q, --pbs-queue=<s>           PBS queue
+  -i, --inspect-pipeline=<s>    Show steps
+  --log=<s>                     Log script activities, by default stdin. Options are fluentd (default: stdin)
+  -e, --log-adapter=<s>         (stdin|syslog|fluentd) In case of fluentd use http://destination.hostname:port/yourtag
+  --tag=<s+>                    Overwrite tags present in samples.yml and pipeline.yml files (e.g. tag1=value1 tag2=value2)
+  -h, --help                    Show this message
 ```
 
 PipEngine accepts two input files:
@@ -683,4 +654,4 @@ If a specific queue needs to be selected for sending the jobs to PBS, the ```--p
 Copyright
 =========
 
-(c)2013 Francesco Strozzi, Raoul Jean Pierre Bonnal 
+&copy;2016 Francesco Strozzi, Raoul Jean Pierre Bonnal 

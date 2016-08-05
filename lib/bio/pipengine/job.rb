@@ -120,7 +120,7 @@ module Bio
 					file.puts "#!/usr/bin/env bash"
 					file.puts "#PBS -N #{self.name}"
 					file.puts "#PBS -d #{self.output}"
-					file.puts "#PBS -q #{options[:pbs_queue]}"
+					file.puts "#PBS -q #{options[:pbs_queue]}" if options[:pbs_queue]
 					if options[:pbs_opts]
 						file.puts "#PBS -l #{options[:pbs_opts].join(",")}"
 					else
@@ -134,7 +134,7 @@ module Bio
 			end
 		
 			def submit
-				job_id = `qsub #{self.output}"/"#{self.name}.pbs`
+				job_id = `qsub #{self.output}/#{self.name}.pbs`
 				@@logger.info "#{job_id}".green
 			end
 
@@ -152,6 +152,12 @@ module Bio
 					cmd = sub_multi(cmd,step)
 				else
 					cmd = sub_placeholders(cmd,sample,step) # normal step, perform usual substitutions
+				end
+				
+				# Check that all placeholders have been substituted, if not terminate with an error
+				cmd.scan(/<\S+>/).each do |unsubstituted_tag|
+					@@logger_error.error("Found an unsubstituted tag #{unsubstituted_tag} . Terminating the execution".red)
+					exit
 				end
 				return cmd
 			end

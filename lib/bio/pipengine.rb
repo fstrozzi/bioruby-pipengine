@@ -11,6 +11,18 @@ module Bio
 			# reading the yaml files
 			pipeline = YAML.load ERB.new(File.read(options[:pipeline])).result(binding)
 			samples_file = load_samples_file options[:samples_file]
+			
+			# make sure all sample names are always Strings
+			converted_samples_list = {}
+			samples_file["samples"].each_key do |sample|
+				if samples_file["samples"][sample].kind_of? Hash # it's a group of samples
+					converted_samples_list[sample.to_s] = Hash[samples_file["samples"][sample].map{ |k, v| [k.to_s, v] }]
+				else
+					converted_samples_list[sample.to_s] = samples_file["samples"][sample]
+				end
+			end
+			samples_file["samples"] = converted_samples_list # replacing original samples hash with the converted one
+
 			# pre-running checks	
 			check_steps(options[:steps],pipeline)	
 			check_samples(options[:samples],samples_file) if options[:samples]
@@ -37,17 +49,35 @@ module Bio
 			########### START ###########
 
 			# create output directory (jobs scripts will be saved there)
-			FileUtils.mkdir_p samples_file["resources"]["output"] unless options[:dry] #&& options[:spooler]!="pbs"
+			FileUtils.mkdir_p samples_file["resources"]["output"] #unless options[:dry] #&& options[:spooler]!="pbs"
 
 			# check if the requested steps are multi-samples
 			run_multi = check_and_run_multi(samples_file,pipeline,samples_list,options)
 			
 			unless run_multi # there are no multi-samples steps, so iterate on samples and create one job per sample
 				samples_list.each_key do |sample_name|
-					sample = Bio::Pipengine::Sample.new(sample_name,samples_list[sample_name],options[:group])
+						sample = Bio::Pipengine::Sample.new(sample_name.to_s,samples_list[sample_name],options[:group])
 					create_job(samples_file,pipeline,samples_list,options,sample)
 				end
 			end
+		end
+
+		def self.parse_tag_option(option_tag)
+			if !option_tag
+				return {}	
+			else
+				tags = {}
+				option_tag.each do |tag|
+					values = tag.split("=")
+					if values.empty?
+						@@logger_error.error "\nAbort! Unrecognized values for tag option, please provide the tags as follows: tag1=value1 tag2=value2".red
+						exit
+					else
+						tags.merge! Hash[*values.flatten]
+					end
+				end
+				return tags
+			end	
 		end
 
 		# handle steps that run on multiple samples (i.e. sample groups job)
@@ -86,8 +116,11 @@ module Bio
 			job.local = options[:tmp]
 			job.custom_output = options[:output_dir]
 			job.custom_name = (options[:name]) ? options[:name] : nil
+			# Adding pipeline and samples resources
 			job.add_resources pipeline["resources"]
 			job.add_resources samples_file["resources"]
+			# Adding resource tag from the command line which can overwrite resources defined in the pipeline and samples files
+			job.add_resources parse_tag_option(options[:tag])
 			#setting the logging system
 			job.log = options[:log]
 			job.log_adapter = options[:log_adapter]
@@ -149,10 +182,10 @@ module Bio
 			puts "\n"
 		end
 		
-		# create the samples.yml file (CASAVA ONLY!)
+		# create the samples.yml file
 		def self.create_samples(dir)
 				File.open("samples.yml","w") do |file|
-					file.write "resources:\n\soutput: #{FileUtils.pwd}\n\nsamples:\n"
+						file.write "resources:\n\soutput: #{`pwd -L`}\n\nsamples:\n"
 					samples = Hash.new {|hash,key| hash[key] = []}
 					dir.each do |path|
 						projects = Dir.glob(path+"/*").sort.select {|folders| folders.split("/")[-1] =~/Project_/}
