@@ -120,7 +120,15 @@ module Bio
 					file.puts "#!/usr/bin/env bash"
 					file.puts "#PBS -N #{self.name}"
 					file.puts "#PBS -d #{self.output}"
+
 					file.puts "#PBS -q #{options[:pbs_queue]}" if options[:pbs_queue]
+
+					if options[:pbs_set_group].empty?
+						file.puts "#PBS -W group_list=#{Etc.getgrgid(Etc.getpwnam(Etc.getlogin).gid).name}"
+					else
+						file.puts "#PBS -W group_list=#{options[:pbs_set_group]}"
+					end
+
 					if options[:pbs_opts]
 						file.puts "#PBS -l #{options[:pbs_opts].join(",")}"
 					else
