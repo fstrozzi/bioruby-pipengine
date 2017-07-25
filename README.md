@@ -83,10 +83,11 @@ Command line for RUN mode
   -o, --output-dir=<s>          Output directory (override standard output directory names)
   -b, --pbs-opts=<s+>           PBS options
   -q, --pbs-queue=<s>           PBS queue
+  -w, --pbs-set-group=<s>       PBS -W group_list (default: )
   -i, --inspect-pipeline=<s>    Show steps
   --log=<s>                     Log script activities, by default stdin. Options are fluentd (default: stdin)
   -e, --log-adapter=<s>         (stdin|syslog|fluentd) In case of fluentd use http://destination.hostname:port/yourtag
-  --tag=<s+>                    Overwrite tags present in samples.yml and pipeline.yml files (e.g. tag1=value1 tag2=value2)
+
   -h, --help                    Show this message
 ```
 
@@ -647,6 +648,18 @@ to have PipEngine translate this into:
 within the job script.
 
 If a specific queue needs to be selected for sending the jobs to PBS, the ```--pbs-queue``` (short version **-q**) parameter can be used. This will pass to the ```qsub``` command the ```-q <queue name>``` taken from the command line.
+
+Working in a team can be usefull to share the stdout and stderr of PBS, usually those files (also joined in one single file) have a restricted access just to the owner. To set the group of those files pipengine will automaticcally set the group to the usergroup (primary) by default, otherwise specifying a different group it will be setted accordibly.
+
+```shell
+--pbs-set-group desired_group_name
+```
+
+will become, in the shell script:
+
+```shell
+#PBS -W group_list=desired_group_name
+```
 
 Copyright
 =========

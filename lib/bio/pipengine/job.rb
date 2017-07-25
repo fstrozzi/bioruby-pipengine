@@ -120,7 +120,15 @@ module Bio
 					file.puts "#!/usr/bin/env bash"
 					file.puts "#PBS -N #{self.name}"
 					file.puts "#PBS -d #{self.output}"
+
 					file.puts "#PBS -q #{options[:pbs_queue]}" if options[:pbs_queue]
+
+					if options[:pbs_set_group].empty?
+						file.puts "#PBS -W group_list=#{Etc.getgrgid(Etc.getpwnam(Etc.getlogin).gid).name}"
+					else
+						file.puts "#PBS -W group_list=#{options[:pbs_set_group]}"
+					end
+
 					if options[:pbs_opts]
 						file.puts "#PBS -l #{options[:pbs_opts].join(",")}"
 					else
@@ -167,14 +175,28 @@ module Bio
 				tmp_cmd = cmd.gsub(/<sample>/,sample.name)
 				if tmp_cmd =~/<sample_path>/
 					sample_path_glob = (tmp_cmd.scan(/<sample_path>(\S+)/).map {|e| e.first})
-					if sample_path_glob.empty?
-						tmp_cmd.gsub!(/<sample_path>/,sample.path.join("\s"))
-					else
+					unless sample_path_glob.empty?
 						sample_path_glob.each do |append|
 							tmp_cmd.gsub!(/<sample_path>#{Regexp.quote(append)}/,(sample.path.map {|s| s+append}).join("\s"))
 						end
 					end
+					tmp_cmd.gsub!(/<sample_path>/,sample.path.join("\s"))
 				end
+
+				if tmp_cmd =~/<sample_group>/
+					sample_group_glob = (tmp_cmd.scan(/<sample_group>(\S+)/).map {|e| e.first})
+					unless sample_group_glob.empty?
+						sample_group_glob.each do |append|
+							tmp_cmd.gsub!(/<sample_group>#{Regexp.quote(append)}/,(sample.group+append))
+						end
+					end
+					tmp_cmd.gsub!(/<sample_group>/,sample.group)
+				end
+
+				if tmp_cmd =~/<sample_group\/>/
+					tmp_cmd = tmp_cmd.gsub(/<sample_group\/>/,self.output+"/")
+				end
+
 				# for resourcers and cpus
 				tmp_cmd = sub_resources_and_cpu(tmp_cmd,step)
 				
