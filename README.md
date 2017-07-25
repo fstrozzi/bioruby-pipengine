@@ -52,7 +52,6 @@ gem install bio-pipengine
 :: Usage ::
 ===========
 
-PipEngine it's divided into two main sections:
 
 ```shell
 > pipengine -h
@@ -62,8 +61,6 @@ List of available commands:
 
 Command line for RUN mode
 -------------------------
-
-With this mode, PipEngine will submit pipeline jobs to the scheduler.
 
 **Command line**
 ```shell
