@@ -12,9 +12,9 @@ authors:
    orcid: 0000-0002-2123-6536
    affiliation: 2
 affiliations:
- - name: Enterome Bioscience
+ - name: Enterome Bioscience, Paris - France
    index: 1
- - name: INGM - National Institute of Molecular Genetics
+ - name: INGM - Isitituto Nazionale Genetica Molecolare "Romeo ed Enrica Invernizzi": Milan, Italy
    index: 2
 date: 25 July 2017
 ---
