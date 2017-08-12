@@ -33,6 +33,8 @@ and then install PipEngine using RubyGems:
 gem install bio-pipengine
 ```
 
+Pipengine has been tested and should work with Ruby >= 2.1.2
+
 :: Topics ::
 ============
 
