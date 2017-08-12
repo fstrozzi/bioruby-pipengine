@@ -1,40 +1,39 @@
 
-pipeline: gbs
+pipeline: simple mapping and variation calling
 
 resources:
-  fastqc: /storage/software/FastQC/fastqc
-  bwa: /storage/software/bwa-0.7.5a/bwa
+  trimmomatic: /storage/software/trimmomatic
+  adapters: /storage/software/trimmomatic/adapters.fa
+  bwa: /storage/software/bwa
   samtools: /storage/software/samtools
-  bgzip: /storage/software/tabix-0.2.6/bgzip
-  tabix: /storage/software/tabix-0.2.6/tabix
-  bcftools: /storage/software/bcftools
-  vcfutils: /storage/software/vcfutils.pl
-  adapters: /storage/software/Trimmomatic-0.30/adapters/TruSeq3-PE.fa
-  trimmomatic: /storage/software/Trimmomatic-0.30/trimmomatic-0.30.jar
-  gatk_jar: /storage/software/GenomeAnalysisTK-2.7-2-g6bda569/GenomeAnalysisTK.jar
+  samblaster: /storage/software/samblaster 
+  freebayes: /storage/software/freebayes
 
 steps:
+
+  trim: 
+    desc: Run Trimmomatic to remove adapters and low quality bases from reads
+    run:
+      - java -jar <trimmomatic> PE -threads <cpu> -phred33 <(ls <sample_path>/*_R1_*.gz | xargs zcat) <(ls <sample_path>/*_R2_*.gz | xargs zcat) <sample>_R1_paired.fastq.gz <sample>_R1_unpaired.fastq.gz <sample>_R2_paired.fastq.gz <sample>_R2_unpaired.fastq.gz ILLUMINACLIP:<adapters>:2:30:10 LEADING:5 TRAILING:5 SLIDINGWINDOW:4:20 MINLEN:36
+      - rm -f <sample>_R1_unpaired.fastq <sample>_R2_unpaired.fastq
+    cpu: 8
+
   mapping:
     desc: Run BWA MEM and generates a sorted BAM file
+    pre: trim
     run:
-     - <bwa> mem -t <cpu> -R '@RG\tID:<flowcell>\tLB:<sample>\tPL:ILLUMINA\tPU:<flowcell>\tCN:PTP\tSM:<sample>' <index> <trim/sample>.trim.fastq | <samtools> view -bS - > <sample>.bam
-     - <samtools> sort -@ <cpu> <sample>.bam <sample>.sort
+     - <bwa> mem -t <cpu> -R '@RG\tID:<flowcell>\tLB:<sample>\tPL:ILLUMINA\tPU:<flowcell>\tCN:PTP\tSM:<sample>' <index> <trim/sample>_R1_paired.fastq.gz <trim/sample>_R2_paired.fastq.gz | <samblaster> -M | <samtools> view -bS - > <sample>.bam
+     - <samtools> sort -@ <cpu> <sample>.bam > <sample>.sort.bam
+     - <samtools> index <sample>.sort.bam
      - rm -f <sample>.bam
     cpu: 8
 
-  _index:
-    desc: Make BAM index
-    run: <samtools> index <mapping/sample>.sort.bam
-
-  gatk:
-    desc: Run GATK to perform SNP and InDel calling, then compress and index the VCF file
-    multi: -I <realign/sample>.final.bam
-    run: 
-     - java -Xmx4g -jar <gatk_jar> -T UnifiedGenotyper <multi> -R <genome> -mbq 30 -o all.gatk.vcf -nt <cpu> -glm BOTH
-     - <bgzip> all.gatk.vcf
-     - <tabix> -p vcf all.gatk.vcf.gz
-    cpu: 20
-    nodes: 2
+  freebayes:
+    desc: Run FreeBayes to call variants on all samples
+    multi: -b <mapping/sample>.sort.bam
+    run:
+      - <freebayes> <multi> --min-mapping-quality 30 --min-coverage 5 --min-alternate-fraction 0.5 -f <genome> -v all.fb.vcf
+    cpu: 4
 
   root_step:
     desc: root step to test dependencies

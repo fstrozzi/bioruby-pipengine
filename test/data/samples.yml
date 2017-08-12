@@ -1,7 +1,8 @@
 resources:
-  index: ./
-  # genome: ./
+  index: /db/genome/human
+  flowcell: ILLU_1234
   output: ./test
+  genome: /db/genome/human.fa
 
 samples:
   Group1:
