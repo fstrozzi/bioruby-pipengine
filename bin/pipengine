@@ -3,7 +3,7 @@
 $:<< File.expand_path(File.join(File.dirname(File.dirname __FILE__),"lib"))
 require 'bio-pipengine'
 
-banner_text = "\nLauncher for Complex Biological Pipelines . Copyright(C) 2013 Francesco Strozzi, Raoul Jean Pierre Bonnal\n\n" 
+banner_text = "\nLauncher for Complex Biological Pipelines . Copyright(C) 2012 Francesco Strozzi, Raoul Jean Pierre Bonnal\n\n" 
 version_text = File.read File.expand_path(File.join(File.dirname(File.dirname __FILE__),"VERSION"))
 SUB_COMMANDS = %w(run jobs)
 
@@ -46,12 +46,15 @@ when "run"
 #	end
 when "-h"
 	puts banner_text
-	puts "List of available commands:\n\trun\tSubmit pipelines to the job scheduler\n\tjobs\tShow statistics and interact with running jobs\n"
+	puts "List of available commands:\n\trun\tSubmit pipelines to the job scheduler\n"
 	exit
 else
 	global_opts = Trollop::options do
 		banner banner_text
 		version "PipEngine v#{version_text}"
+	  puts banner_text
+		puts "PipEngine v#{version_text}" 
+		puts "List of available commands:\n\trun\tSubmit pipelines to the job scheduler\n\n"
 	end
 end
 
