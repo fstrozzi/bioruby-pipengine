@@ -36,14 +36,6 @@ when "run"
 		opt :log_adapter, "(stdin|syslog|fluentd) In case of fluentd use http://destination.hostname:port/yourtag", :type => :string
 		opt :tag, "Overwrite tags present in samples.yml and pipeline.yml files (e.g. tag1=value1 tag2=value2)", :type => :strings
 	end
-#when "jobs"
-#	ARGV.shift
-#	options[:jobs] = true
-#	Trollop::options do
-#		opt :job_id, "Search submitted jobs by Job ID", :type => :strings, :short => "i"
-#		opt :job_name, "Search submitted jobs by Job Name", :type => :strings, :short => "n"
-#		opt :delete, "Delete submitted jobs ('all' to erase everything or type one or more job IDs)", :short => "d", :type => :strings
-#	end
 when "-h"
 	puts banner_text
 	puts "List of available commands:\n\trun\tSubmit pipelines to the job scheduler\n"
