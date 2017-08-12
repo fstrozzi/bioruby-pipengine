@@ -7,6 +7,9 @@ PipEngine will generate runnable shell scripts, already configured for the PBS/T
 
 PipEngine is best suited for NGS pipelines, but it can be used for any kind of pipeline that can be runned on a job scheduling system and which is "sample" centric, i.e. you have from one side a list of samples with their corresponding raw data, and from the other side a pipeline that you would like to apply to them.
 
+PipEngine was developed to combine the typical flexibility and portability of shell scripts, with the concept of pipeline templates that can be easily applied on different input data to reproduce scientific results. The overall improvement over Makefiles or customised ad-hoc shell scripts is better readability of the pipelines using the YAML format, especially for people with no coding experience, the automated scripts generation which allows adding extra functionalities like error controls and logging directly into script jobs, and an enforced separation between the description of input data and the pipeline template, which improves clarity and reusability of analysis protocols.
+
+
 Installation
 ============
 
@@ -48,6 +51,8 @@ gem install bio-pipengine
 [Examples](https://github.com/bioinformatics-ptp/bioruby-pipengine#-examples-)
 
 [PBS Options](https://github.com/bioinformatics-ptp/bioruby-pipengine#-pbs-options-)
+
+[Extending and contributing](https://github.com/bioinformatics-ptp/bioruby-pipengine#-extending-and-contributing-)
 
 :: Usage ::
 ===========
@@ -648,7 +653,14 @@ within the job script.
 
 If a specific queue needs to be selected for sending the jobs to PBS, the ```--pbs-queue``` (short version **-q**) parameter can be used. This will pass to the ```qsub``` command the ```-q <queue name>``` taken from the command line.
 
+:: Extending and contributing ::
+================================
+
+Pipengine code is organized around main methods allowing for YAML parsing and command line arguments substitutions that are available in lib/bio/pipengine.rb. Specific logic for jobs, pipeline steps and samples is described in dedicated classes called Bio::Pipengine::Job, Bio::Pipengine::Step and Bio::Pipengine::Sample.
+
+For instance, in case the support for different schedulers needs to be introduced, it will be sufficient to modify or extend the Job.to_script method, which is the one defining scheduler-specific options in the runnable bash script.
+
 Copyright
 =========
 
-&copy;2016 Francesco Strozzi, Raoul Jean Pierre Bonnal 
+&copy;2017 Francesco Strozzi, Raoul Jean Pierre Bonnal 
