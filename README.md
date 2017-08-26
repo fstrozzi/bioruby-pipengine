@@ -497,6 +497,7 @@ pipeline: resequencing
 resources:
   bwa: /software/bwa
   samtools: /software/samtools
+  pigz: /software/pigz
 
 steps:
   mapping:
@@ -505,7 +506,7 @@ steps:
      - ls <sample_path>/*_R2_*.gz | xargs zcat | <pigz> -p 10 >> R2.fastq.gz
      - <bwa> sampe -P <index> <(<bwa> aln -t 4 -q 20 <index> R1.fastq.gz) <(<bwa> aln -t 4 -q 20 <index> R2.fastq.gz) R1.fastq.gz R2.fastq.gz | <samtools> view -Sb - > <sample>.bam
      - rm -f R1.fastq.gz R2.fastq.gz
-    cpu: 11
+    cpu: 12
 ```
 
 **samples.yml**
@@ -534,7 +535,7 @@ will generate a runnable shell script for each sample:
 #!/usr/bin/env bash
 #PBS -N 2c57c1a853-sampleA-mapping
 #PBS -d ./working
-#PBS -l nodes=1:ppn=11
+#PBS -l nodes=1:ppn=12
 if [ ! -f ./working/sampleA/mapping/checkpoint ]
 then
 echo "mapping 2c57c1a853-sampleA-mapping start `whoami` `hostname` `pwd` `date`."
