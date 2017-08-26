@@ -1,0 +1,15 @@
+pipeline: resequencing
+
+resources:
+  bwa: /software/bwa
+  samtools: /software/samtools
+  pigz: /software/pigz
+
+steps:
+  mapping:
+    run:
+     - ls <sample_path>/*_R1_*.gz | xargs zcat | <pigz> -p 10 >> R1.fastq.gz
+     - ls <sample_path>/*_R2_*.gz | xargs zcat | <pigz> -p 10 >> R2.fastq.gz
+     - <bwa> sampe -P <index> <(<bwa> aln -t 4 -q 20 <index> R1.fastq.gz) <(<bwa> aln -t 4 -q 20 <index> R2.fastq.gz) R1.fastq.gz R2.fastq.gz | <samtools> view -Sb - > <sample>.bam
+     - rm -f R1.fastq.gz R2.fastq.gz
+    cpu: 11
