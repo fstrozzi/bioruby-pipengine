@@ -71,7 +71,7 @@ Command line for RUN mode
 
 **Command line**
 ```shell
-> pipenengine run -p pipeline.yml -f samples.yml -s mapping --tmp /tmp
+> pipengine run -p pipeline.yml -f samples.yml -s mapping --tmp /tmp
 ```
 
 **Parameters**
@@ -523,7 +523,7 @@ samples:
 Running PipEngine with the following command line:
 
 ```
-pipengine -p pipeline.yml -f samples.yml -s mapping
+pipengine run -p pipeline.yml -f samples.yml -s mapping
 ```
 
 will generate a runnable shell script for each sample:
@@ -581,7 +581,7 @@ steps:
 The sample YAML file is the same as the example above. Now to execute together the 3 steps defined in the pipeline, PipEngine must be invoked with this command line:
 
 ```
-pipengine -p pipeline.yml  -f samples.yml -s mapping mark_dup realign_target
+pipengine run -p pipeline.yml  -f samples.yml -s mapping mark_dup realign_target
 ```
 
 And this will be translated into the following shell script (one for each sample):
