@@ -511,7 +511,7 @@ steps:
 resources:
   index: /storage/genomes/bwa_index/genome
   genome: /storage/genomes/genome.fa
-  output: /storage/results
+  output: ./working
 
 samples:
   sampleA: /ngs_reads/sampleA
@@ -523,7 +523,7 @@ samples:
 Running PipEngine with the following command line:
 
 ```
-pipengine run -p pipeline.yml -f samples.yml -s mapping
+pipengine run -p pipeline.yml -f samples.yml -s mapping -d
 ```
 
 will generate a runnable shell script for each sample:
@@ -581,7 +581,7 @@ steps:
 The sample YAML file is the same as the example above. Now to execute together the 3 steps defined in the pipeline, PipEngine must be invoked with this command line:
 
 ```
-pipengine run -p pipeline.yml  -f samples.yml -s mapping mark_dup realign_target
+pipengine run -p pipeline.yml  -f samples.yml -s mapping mark_dup realign_target -d
 ```
 
 And this will be translated into the following shell script (one for each sample):
