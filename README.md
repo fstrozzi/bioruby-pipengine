@@ -441,7 +441,7 @@ When invoking PipEngine, the tool will look for the pipeline YAML specified and 
 
 PipEngine will then combine the data from the two YAML, generating the specific command lines of the selected steps and substituing all the placeholders to generate the final command lines.
 
-A shell script will be finally generated, for each sample, that will contain all the instructions to run a specific step of the pipeline plus the meta-data for the PBS scheduler.
+A shell script will be finally generated, for each sample, that will contain all the instructions to run a specific step of the pipeline plus the meta-data for the PBS scheduler. The shell scripts are written inside the directory specified on the ```output:``` key in the ```samples.yml``` file, the directory is created if it does not exist.
 
 If not invoked with the **-d** option (dry-run) PipEngine will directly submit the jobs to the PBS scheduler using the "qsub" command.
 
