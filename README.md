@@ -592,7 +592,7 @@ steps:
     cpu: 8
 ```
 
-The sample YAML file is the same as the example above. Now to execute together the 3 steps defined in the pipeline, PipEngine must be invoked with this command line:
+The sample YAML file is the same as the example above. Now to execute together the 3 steps defined in the pipeline, PipEngine can be invoked with this command line:
 
 ```
 pipengine run -p pipeline_multi.yml  -f samples.yml -s realign_target -d
