@@ -529,7 +529,7 @@ Running PipEngine with the following command line:
 pipengine run -p pipeline.yml -f samples.yml -s mapping -d
 ```
 
-will generate a runnable shell script for each sample:
+will generate a runnable shell script for each sample (available in the ./working directory):
 
 ```shell
 #!/usr/bin/env bash
@@ -597,7 +597,7 @@ The sample YAML file is the same as the example above. Now to execute together t
 ```
 pipengine run -p pipeline_multi.yml  -f samples.yml -s realign_target -d
 ```
-Since dependencies have been defined for the steps using the ```pre``` key, it is sufficient to invoke Pipengine with the last step and the other two are automatically included in the script. Messages will be prompted in this case since Pipengine just warns that the directories for certain steps, that are needed for other steps in the pipeline, are not yet available (and thus the corresponding steps will be executed to generate the necessary data). The command line will generate the following shell script (one for each sample):
+Since dependencies have been defined for the steps using the ```pre``` key, it is sufficient to invoke Pipengine with the last step and the other two are automatically included in the script. Messages will be prompted in this case since Pipengine just warns that the directories for certain steps, that are needed for other steps in the pipeline, are not yet available (and thus the corresponding steps will be executed to generate the necessary data). The command line will generate the following shell script (one for each sample, available in the ./working directory):
 
 ```shell
 #!/usr/bin/env bash
