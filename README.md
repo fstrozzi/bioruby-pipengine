@@ -583,9 +583,11 @@ steps:
     cpu: 12
 
   mark_dup:
+		pre: mapping
     run: java -Xmx4g -jar <mark_dup> VERBOSITY=INFO MAX_RECORDS_IN_RAM=500000 VALIDATION_STRINGENCY=SILENT INPUT=<mapping/sample>.sorted.bam OUTPUT=<sample>.md.sort.bam METRICS_FILE=<sample>.metrics REMOVE_DUPLICATES=false
 
   realign_target:
+		pre: mark_dup
     run: java -Xmx4g -jar <gatk> -T RealignerTargetCreator -I <mark_dup/sample>.md.sort.bam -nt 8 -R <genome> -o <sample>.indels.intervals
     cpu: 8
 ```
@@ -593,56 +595,58 @@ steps:
 The sample YAML file is the same as the example above. Now to execute together the 3 steps defined in the pipeline, PipEngine must be invoked with this command line:
 
 ```
-pipengine run -p pipeline_multi.yml  -f samples.yml -s mapping mark_dup realign_target -d
+pipengine run -p pipeline_multi.yml  -f samples.yml -s realign_target -d
 ```
 
 And this will be translated into the following shell script (one for each sample):
 
 ```shell
 #!/usr/bin/env bash
-#PBS -N 2b0b7c006c-sampleB-mapping-mark_dup-realign_target
+#PBS -N 6f3c911c49-sampleC-realign_target
 #PBS -d ./working
 #PBS -l nodes=1:ppn=12
-if [ ! -f ./working/sampleB/mapping/checkpoint ]
+if [ ! -f ./working/sampleC/mapping/checkpoint ]
 then
-echo "mapping 2b0b7c006c-sampleB-mapping-mark_dup-realign_target start `whoami` `hostname` `pwd` `date`."
+echo "mapping 6f3c911c49-sampleC-realign_target start `whoami` `hostname` `pwd` `date`."
 
-mkdir -p ./working/sampleB/mapping
-cd ./working/sampleB/mapping
-ls /ngs_reads/sampleB/*_R1_*.gz | xargs zcat | pigz -p 10 >> R1.fastq.gz || { echo "mapping 2b0b7c006c-sampleB-mapping-mark_dup-realign_target FAILED 0 `whoami` `hostname` `pwd` `date`."; exit 1; }
-ls /ngs_reads/sampleB/*_R2_*.gz | xargs zcat | pigz -p 10 >> R2.fastq.gz || { echo "mapping 2b0b7c006c-sampleB-mapping-mark_dup-realign_target FAILED 1 `whoami` `hostname` `pwd` `date`."; exit 1; }
-/software/bwa sampe -P /storage/genomes/bwa_index/genome <(/software/bwa aln -t 4 -q 20 /storage/genomes/bwa_index/genome R1.fastq.gz) <(/software/bwa aln -t 4 -q 20 /storage/genomes/bwa_index/genome R2.fastq.gz) R1.fastq.gz R2.fastq.gz | /software/samtools view -Su - | java -Xmx4g -jar /storage/software/picard-tools-1.77/AddOrReplaceReadGroups.jar I=/dev/stdin O=sampleB.sorted.bam SO=coordinate LB=sampleB PL=illumina PU=PU SM=sampleB TMP_DIR=/data/tmp CREATE_INDEX=true MAX_RECORDS_IN_RAM=1000000 || { echo "mapping 2b0b7c006c-sampleB-mapping-mark_dup-realign_target FAILED 2 `whoami` `hostname` `pwd` `date`."; exit 1; }
-rm -f R1.fastq.gz R2.fastq.gz || { echo "mapping 2b0b7c006c-sampleB-mapping-mark_dup-realign_target FAILED 3 `whoami` `hostname` `pwd` `date`."; exit 1; }
-echo "mapping 2b0b7c006c-sampleB-mapping-mark_dup-realign_target finished `whoami` `hostname` `pwd` `date`."
-touch ./working/sampleB/mapping/checkpoint
+mkdir -p ./working/sampleC/mapping
+cd ./working/sampleC/mapping
+ls /ngs_reads/sampleC/*_R1_*.gz | xargs zcat | pigz -p 10 >> R1.fastq.gz || { echo "mapping 6f3c911c49-sampleC-realign_target FAILED 0 `whoami` `hostname` `pwd` `date`."; exit 1; }
+ls /ngs_reads/sampleC/*_R2_*.gz | xargs zcat | pigz -p 10 >> R2.fastq.gz || { echo "mapping 6f3c911c49-sampleC-realign_target FAILED 1 `whoami` `hostname` `pwd` `date`."; exit 1; }
+/software/bwa sampe -P /storage/genomes/bwa_index/genome <(/software/bwa aln -t 4 -q 20 /storage/genomes/bwa_index/genome R1.fastq.gz) <(/software/bwa aln -t 4 -q 20 /storage/genomes/bwa_index/genome R2.fastq.gz) R1.fastq.gz R2.fastq.gz | /software/samtools view -Su - | java -Xmx4g -jar /storage/software/picard-tools-1.77/AddOrReplaceReadGroups.jar I=/dev/stdin O=sampleC.sorted.bam SO=coordinate LB=sampleC PL=illumina PU=PU SM=sampleC TMP_DIR=/data/tmp CREATE_INDEX=true MAX_RECORDS_IN_RAM=1000000 || { echo "mapping 6f3c911c49-sampleC-realign_target FAILED 2 `whoami` `hostname` `pwd` `date`."; exit 1; }
+rm -f R1.fastq.gz R2.fastq.gz || { echo "mapping 6f3c911c49-sampleC-realign_target FAILED 3 `whoami` `hostname` `pwd` `date`."; exit 1; }
+echo "mapping 6f3c911c49-sampleC-realign_target finished `whoami` `hostname` `pwd` `date`."
+touch ./working/sampleC/mapping/checkpoint
 else
-echo "mapping 2b0b7c006c-sampleB-mapping-mark_dup-realign_target already executed, skipping this step `whoami` `hostname` `pwd` `date`."
+echo "mapping 6f3c911c49-sampleC-realign_target already executed, skipping this step `whoami` `hostname` `pwd` `date`."
 fi
-if [ ! -f ./working/sampleB/mark_dup/checkpoint ]
+if [ ! -f ./working/sampleC/mark_dup/checkpoint ]
 then
-echo "mark_dup 2b0b7c006c-sampleB-mapping-mark_dup-realign_target start `whoami` `hostname` `pwd` `date`."
+echo "mark_dup 6f3c911c49-sampleC-realign_target start `whoami` `hostname` `pwd` `date`."
 
-mkdir -p ./working/sampleB/mark_dup
-cd ./working/sampleB/mark_dup
-java -Xmx4g -jar /software/picard-tools-1.77/MarkDuplicates.jar VERBOSITY=INFO MAX_RECORDS_IN_RAM=500000 VALIDATION_STRINGENCY=SILENT INPUT=./working/sampleB/mapping/sampleB.sorted.bam OUTPUT=sampleB.md.sort.bam METRICS_FILE=sampleB.metrics REMOVE_DUPLICATES=false || { echo "mark_dup 2b0b7c006c-sampleB-mapping-mark_dup-realign_target FAILED `whoami` `hostname` `pwd` `date`."; exit 1; }
-echo "mark_dup 2b0b7c006c-sampleB-mapping-mark_dup-realign_target finished `whoami` `hostname` `pwd` `date`."
-touch ./working/sampleB/mark_dup/checkpoint
+mkdir -p ./working/sampleC/mark_dup
+cd ./working/sampleC/mark_dup
+java -Xmx4g -jar /software/picard-tools-1.77/MarkDuplicates.jar VERBOSITY=INFO MAX_RECORDS_IN_RAM=500000 VALIDATION_STRINGENCY=SILENT INPUT=./working/sampleC/mapping/sampleC.sorted.bam OUTPUT=sampleC.md.sort.bam METRICS_FILE=sampleC.metrics REMOVE_DUPLICATES=false || { echo "mark_dup 6f3c911c49-sampleC-realign_target FAILED `whoami` `hostname` `pwd` `date`."; exit 1; }
+echo "mark_dup 6f3c911c49-sampleC-realign_target finished `whoami` `hostname` `pwd` `date`."
+touch ./working/sampleC/mark_dup/checkpoint
 else
-echo "mark_dup 2b0b7c006c-sampleB-mapping-mark_dup-realign_target already executed, skipping this step `whoami` `hostname` `pwd` `date`."
+echo "mark_dup 6f3c911c49-sampleC-realign_target already executed, skipping this step `whoami` `hostname` `pwd` `date`."
 fi
-if [ ! -f ./working/sampleB/realign_target/checkpoint ]
+if [ ! -f ./working/sampleC/realign_target/checkpoint ]
 then
-echo "realign_target 2b0b7c006c-sampleB-mapping-mark_dup-realign_target start `whoami` `hostname` `pwd` `date`."
+echo "realign_target 6f3c911c49-sampleC-realign_target start `whoami` `hostname` `pwd` `date`."
 
-mkdir -p ./working/sampleB/realign_target
-cd ./working/sampleB/realign_target
-java -Xmx4g -jar /software/GenomeAnalysisTK/GenomeAnalysisTK.jar -T RealignerTargetCreator -I ./working/sampleB/mark_dup/sampleB.md.sort.bam -nt 8 -R /storage/genomes/genome.fa -o sampleB.indels.intervals || { echo "realign_target 2b0b7c006c-sampleB-mapping-mark_dup-realign_target FAILED `whoami` `hostname` `pwd` `date`."; exit 1; }
-echo "realign_target 2b0b7c006c-sampleB-mapping-mark_dup-realign_target finished `whoami` `hostname` `pwd` `date`."
-touch ./working/sampleB/realign_target/checkpoint
+mkdir -p ./working/sampleC/realign_target
+cd ./working/sampleC/realign_target
+java -Xmx4g -jar /software/GenomeAnalysisTK/GenomeAnalysisTK.jar -T RealignerTargetCreator -I ./working/sampleC/mark_dup/sampleC.md.sort.bam -nt 8 -R /storage/genomes/genome.fa -o sampleC.indels.intervals || { echo "realign_target 6f3c911c49-sampleC-realign_target FAILED `whoami` `hostname` `pwd` `date`."; exit 1; }
+echo "realign_target 6f3c911c49-sampleC-realign_target finished `whoami` `hostname` `pwd` `date`."
+touch ./working/sampleC/realign_target/checkpoint
 else
-echo "realign_target 2b0b7c006c-sampleB-mapping-mark_dup-realign_target already executed, skipping this step `whoami` `hostname` `pwd` `date`."
+echo "realign_target 6f3c911c49-sampleC-realign_target already executed, skipping this step `whoami` `hostname` `pwd` `date`."
 fi
 ```
+
+Since dependencies have been defined for the steps using the ```pre``` key, it is sufficient to invoke Pipengine with the last step and the other two are automatically included in the script.
 
 Logging
 ---------------------------
