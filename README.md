@@ -483,6 +483,8 @@ When multiple steps are run in the same job, by default PipEngine will generate 
 :: Examples ::
 ==============
 
+All these files can be found into the test/examples directory of the repository.
+
 Example 1: One step and multiple command lines
 ----------------------------------------------
 
@@ -529,18 +531,27 @@ pipengine run -p pipeline.yml -f samples.yml -s mapping -d
 will generate a runnable shell script for each sample:
 
 ```shell
-#!/bin/bash
-#PBS -N 37735f50-mapping
-#PBS -l ncpus=11
+#!/usr/bin/env bash
+#PBS -N 2c57c1a853-sampleA-mapping
+#PBS -d ./working
+#PBS -l nodes=1:ppn=11
+if [ ! -f ./working/sampleA/mapping/checkpoint ]
+then
+echo "mapping 2c57c1a853-sampleA-mapping start `whoami` `hostname` `pwd` `date`."
 
-mkdir -p /storage/results/sampleA/mapping
-cd /storage/results/sampleA/mapping
-ls /ngs_reads/sampleA/*_R1_*.gz | xargs zcat | pigz -p 10 >> R1.fastq.gz
-ls /ngs_reads/sampleA/*_R2_*.gz | xargs zcat | pigz -p 10 >> R2.fastq.gz
-/software/bwa sampe -P /genomes/bwa_index/genome <(/software/bwa aln -t 4 -q 20 /genomes/bwa_index/genome R1.fastq.gz) <(/software/bwa aln -t 4 -q 20 /genomes/bwa_index/genome R2.fastq.gz) R1.fastq.gz R2.fastq.gz | /software/samtools view -Sb - > sampleA.bam
-rm -f R1.fastq.gz R2.fastq.gz
+mkdir -p ./working/sampleA/mapping
+cd ./working/sampleA/mapping
+ls /ngs_reads/sampleA/*_R1_*.gz | xargs zcat | /software/pigz -p 10 >> R1.fastq.gz || { echo "mapping 2c57c1a853-sampleA-mapping FAILED 0 `whoami` `hostname` `pwd` `date`."; exit 1; }
+ls /ngs_reads/sampleA/*_R2_*.gz | xargs zcat | /software/pigz -p 10 >> R2.fastq.gz || { echo "mapping 2c57c1a853-sampleA-mapping FAILED 1 `whoami` `hostname` `pwd` `date`."; exit 1; }
+/software/bwa sampe -P /storage/genomes/bwa_index/genome <(/software/bwa aln -t 4 -q 20 /storage/genomes/bwa_index/genome R1.fastq.gz) <(/software/bwa aln -t 4 -q 20 /storage/genomes/bwa_index/genome R2.fastq.gz) R1.fastq.gz R2.fastq.gz | /software/samtools view -Sb - > sampleA.bam || { echo "mapping 2c57c1a853-sampleA-mapping FAILED 2 `whoami` `hostname` `pwd` `date`."; exit 1; }
+rm -f R1.fastq.gz R2.fastq.gz || { echo "mapping 2c57c1a853-sampleA-mapping FAILED 3 `whoami` `hostname` `pwd` `date`."; exit 1; }
+echo "mapping 2c57c1a853-sampleA-mapping finished `whoami` `hostname` `pwd` `date`."
+touch ./working/sampleA/mapping/checkpoint
+else
+echo "mapping 2c57c1a853-sampleA-mapping already executed, skipping this step `whoami` `hostname` `pwd` `date`."
+fi
 ```
-As you can see the command line described in the pipeline YAML are translated into normal Unix command lines, therefore every solution that works on a standard Unix shell (pipes, bash substitutions) is perfectly acceptable.
+As you can see the command line described in the pipeline YAML are translated into normal Unix command lines, therefore every solution that works on a standard Unix shell (pipes, bash substitutions) is perfectly acceptable. Pipengine addes extra lines in the script for steps checkpoint controls to avoid re-running already executed steps, and error controls with logging.
 
 In this case also, the **run** key defines three different command lines, that are described using YAML array (a line prepended with a -). This command lines are all part of the same step, since the first two are required to prepare the input for the third command line (BWA), using standard bash commands.
 
@@ -568,7 +579,7 @@ steps:
      - ls <sample_path>/*_R2_*.gz | xargs zcat | pigz -p 10 >> R2.fastq.gz
      - <bwa> sampe -P <index> <(<bwa> aln -t 4 -q 20 <index> R1.fastq.gz) <(<bwa> aln -t 4 -q 20 <index> R2.fastq.gz) R1.fastq.gz R2.fastq.gz | <samtools> view -Su - | java -Xmx4g -jar /storage/software/picard-tools-1.77/AddOrReplaceReadGroups.jar I=/dev/stdin O=<sample>.sorted.bam SO=coordinate LB=<pipeline> PL=illumina PU=PU SM=<sample> TMP_DIR=/data/tmp CREATE_INDEX=true MAX_RECORDS_IN_RAM=1000000
      - rm -f R1.fastq.gz R2.fastq.gz
-    cpu: 11
+    cpu: 12
 
   mark_dup:
     run: java -Xmx4g -jar <mark_dup> VERBOSITY=INFO MAX_RECORDS_IN_RAM=500000 VALIDATION_STRINGENCY=SILENT INPUT=<mapping/sample>.sorted.bam OUTPUT=<sample>.md.sort.bam METRICS_FILE=<sample>.metrics REMOVE_DUPLICATES=false
@@ -581,28 +592,55 @@ steps:
 The sample YAML file is the same as the example above. Now to execute together the 3 steps defined in the pipeline, PipEngine must be invoked with this command line:
 
 ```
-pipengine run -p pipeline.yml  -f samples.yml -s mapping mark_dup realign_target -d
+pipengine run -p pipeline_multi.yml  -f samples.yml -s mapping mark_dup realign_target -d
 ```
 
 And this will be translated into the following shell script (one for each sample):
 
 ```shell
-#!/bin/bash
-#PBS -N ff020300-mapping-mark_dup-realign_target
-#PBS -l ncpus=11
+#!/usr/bin/env bash
+#PBS -N 2b0b7c006c-sampleB-mapping-mark_dup-realign_target
+#PBS -d ./working
+#PBS -l nodes=1:ppn=12
+if [ ! -f ./working/sampleB/mapping/checkpoint ]
+then
+echo "mapping 2b0b7c006c-sampleB-mapping-mark_dup-realign_target start `whoami` `hostname` `pwd` `date`."
 
-mkdir -p /storage/results/sampleB/mapping
-cd /storage/results/sampleB/mapping
-ls /ngs_reads/sampleB/*_R1_*.gz | xargs zcat | pigz -p 10 >> R1.fastq.gz
-ls /ngs_reads/sampleB/*_R2_*.gz | xargs zcat | pigz -p 10 >> R2.fastq.gz
-/software/bwa sampe -P /storage/genomes/bwa_index/genome <(/software/bwa aln -t 4 -q 20 /genomes/bwa_index/genome R1.fastq.gz) <(/software/bwa aln -t 4 -q 20 /genomes/bwa_index/genome R2.fastq.gz) R1.fastq.gz R2.fastq.gz | /software/samtools view -Sb - > sampleA.bam
-rm -f R1.fastq.gz R2.fastq.gz
-mkdir -p /storage/results/sampleB/mark_dup
-cd /storage/results/sampleB/mark_dup
-java -Xmx4g -jar /software/picard-tools-1.77/MarkDuplicates.jar VERBOSITY=INFO MAX_RECORDS_IN_RAM=500000 VALIDATION_STRINGENCY=SILENT INPUT=sampleB.sorted.bam OUTPUT=sampleB.md.sort.bam METRICS_FILE=sampleB.metrics REMOVE_DUPLICATES=false
-mkdir -p /storage/results/sampleB/realign_target
-cd /storage/results/sampleB/realign_target
-java -Xmx4g -jar /software/GenomeAnalysisTk/GenomeAnalysisTk.jar -T RealignerTargetCreator -I sampleB.md.sort.bam -nt 8 -R /storage/genomes/genome.fa -o sampleB.indels.intervals
+mkdir -p ./working/sampleB/mapping
+cd ./working/sampleB/mapping
+ls /ngs_reads/sampleB/*_R1_*.gz | xargs zcat | pigz -p 10 >> R1.fastq.gz || { echo "mapping 2b0b7c006c-sampleB-mapping-mark_dup-realign_target FAILED 0 `whoami` `hostname` `pwd` `date`."; exit 1; }
+ls /ngs_reads/sampleB/*_R2_*.gz | xargs zcat | pigz -p 10 >> R2.fastq.gz || { echo "mapping 2b0b7c006c-sampleB-mapping-mark_dup-realign_target FAILED 1 `whoami` `hostname` `pwd` `date`."; exit 1; }
+/software/bwa sampe -P /storage/genomes/bwa_index/genome <(/software/bwa aln -t 4 -q 20 /storage/genomes/bwa_index/genome R1.fastq.gz) <(/software/bwa aln -t 4 -q 20 /storage/genomes/bwa_index/genome R2.fastq.gz) R1.fastq.gz R2.fastq.gz | /software/samtools view -Su - | java -Xmx4g -jar /storage/software/picard-tools-1.77/AddOrReplaceReadGroups.jar I=/dev/stdin O=sampleB.sorted.bam SO=coordinate LB=sampleB PL=illumina PU=PU SM=sampleB TMP_DIR=/data/tmp CREATE_INDEX=true MAX_RECORDS_IN_RAM=1000000 || { echo "mapping 2b0b7c006c-sampleB-mapping-mark_dup-realign_target FAILED 2 `whoami` `hostname` `pwd` `date`."; exit 1; }
+rm -f R1.fastq.gz R2.fastq.gz || { echo "mapping 2b0b7c006c-sampleB-mapping-mark_dup-realign_target FAILED 3 `whoami` `hostname` `pwd` `date`."; exit 1; }
+echo "mapping 2b0b7c006c-sampleB-mapping-mark_dup-realign_target finished `whoami` `hostname` `pwd` `date`."
+touch ./working/sampleB/mapping/checkpoint
+else
+echo "mapping 2b0b7c006c-sampleB-mapping-mark_dup-realign_target already executed, skipping this step `whoami` `hostname` `pwd` `date`."
+fi
+if [ ! -f ./working/sampleB/mark_dup/checkpoint ]
+then
+echo "mark_dup 2b0b7c006c-sampleB-mapping-mark_dup-realign_target start `whoami` `hostname` `pwd` `date`."
+
+mkdir -p ./working/sampleB/mark_dup
+cd ./working/sampleB/mark_dup
+java -Xmx4g -jar /software/picard-tools-1.77/MarkDuplicates.jar VERBOSITY=INFO MAX_RECORDS_IN_RAM=500000 VALIDATION_STRINGENCY=SILENT INPUT=./working/sampleB/mapping/sampleB.sorted.bam OUTPUT=sampleB.md.sort.bam METRICS_FILE=sampleB.metrics REMOVE_DUPLICATES=false || { echo "mark_dup 2b0b7c006c-sampleB-mapping-mark_dup-realign_target FAILED `whoami` `hostname` `pwd` `date`."; exit 1; }
+echo "mark_dup 2b0b7c006c-sampleB-mapping-mark_dup-realign_target finished `whoami` `hostname` `pwd` `date`."
+touch ./working/sampleB/mark_dup/checkpoint
+else
+echo "mark_dup 2b0b7c006c-sampleB-mapping-mark_dup-realign_target already executed, skipping this step `whoami` `hostname` `pwd` `date`."
+fi
+if [ ! -f ./working/sampleB/realign_target/checkpoint ]
+then
+echo "realign_target 2b0b7c006c-sampleB-mapping-mark_dup-realign_target start `whoami` `hostname` `pwd` `date`."
+
+mkdir -p ./working/sampleB/realign_target
+cd ./working/sampleB/realign_target
+java -Xmx4g -jar /software/GenomeAnalysisTK/GenomeAnalysisTK.jar -T RealignerTargetCreator -I ./working/sampleB/mark_dup/sampleB.md.sort.bam -nt 8 -R /storage/genomes/genome.fa -o sampleB.indels.intervals || { echo "realign_target 2b0b7c006c-sampleB-mapping-mark_dup-realign_target FAILED `whoami` `hostname` `pwd` `date`."; exit 1; }
+echo "realign_target 2b0b7c006c-sampleB-mapping-mark_dup-realign_target finished `whoami` `hostname` `pwd` `date`."
+touch ./working/sampleB/realign_target/checkpoint
+else
+echo "realign_target 2b0b7c006c-sampleB-mapping-mark_dup-realign_target already executed, skipping this step `whoami` `hostname` `pwd` `date`."
+fi
 ```
 
 Logging
