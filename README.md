@@ -375,7 +375,7 @@ So the two command lines need two different kind of files as input from the same
 Once the step has been defined in the pipeline YAML, PipEngine must be invoked using the **-m** parameter, to specify the samples that should be grouped together by this step:
 
 ```shell
-pipengine -p pipeline.yml -m SampleA,SampleB SampleC,SampleB
+pipengine run -p pipeline.yml -m SampleA,SampleB SampleC,SampleB
 ```
 
 Note that the use of commas is not casual, since the **-m** parameter specifies not only which samples should be used for this step, but also how they should be organized on the corresponding command line. The **-m** parameter takes the sample names and underneath it will combine the sample name with the 'multi' keywords and then it will substitute back the command line by keeping the samples in the same order as provided with the **-m**.
@@ -471,7 +471,7 @@ It is of course possible to aggregate multiple steps of a pipeline and run them 
 From the command line it's just:
 
 ```shell
-pipengine -p pipeline.yml -s mapping mark_dup realign_target
+pipengine run -p pipeline.yml -s mapping mark_dup realign_target
 ```
 
 A single job script, for each sample, will be generated with all the instructions for these steps. If more than one step declares a **cpu** key, the highest cpu value will be assigned for the whole job.
