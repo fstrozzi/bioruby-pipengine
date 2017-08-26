@@ -115,7 +115,7 @@ pipeline: resequencing
 
 resources:
   fastqc: /software/FastQC/fastqc
-  bwa: /software/bwa-0.6.2/bwa
+  bwa: /software/bwa
   gatk: /software/gatk-lite/GenomeAnalysisTk.jar
   samtools: /software/samtools
   samsort: /software/picard-tools-1.77/SortSam.jar
@@ -493,7 +493,7 @@ This is an example on how to prepare the inputs for BWA and run it along with Sa
 pipeline: resequencing
 
 resources:
-  bwa: /software/bwa-0.6.2/bwa
+  bwa: /software/bwa
   samtools: /software/samtools
 
 steps:
@@ -537,7 +537,7 @@ mkdir -p /storage/results/sampleA/mapping
 cd /storage/results/sampleA/mapping
 ls /ngs_reads/sampleA/*_R1_*.gz | xargs zcat | pigz -p 10 >> R1.fastq.gz
 ls /ngs_reads/sampleA/*_R2_*.gz | xargs zcat | pigz -p 10 >> R2.fastq.gz
-/software/bwa-0.6.2/bwa sampe -P /genomes/bwa_index/genome <(/software/bwa-0.6.2/bwa aln -t 4 -q 20 /genomes/bwa_index/genome R1.fastq.gz) <(/software/bwa-0.6.2/bwa aln -t 4 -q 20 /genomes/bwa_index/genome R2.fastq.gz) R1.fastq.gz R2.fastq.gz | /software/samtools view -Sb - > sampleA.bam
+/software/bwa sampe -P /genomes/bwa_index/genome <(/software/bwa aln -t 4 -q 20 /genomes/bwa_index/genome R1.fastq.gz) <(/software/bwa aln -t 4 -q 20 /genomes/bwa_index/genome R2.fastq.gz) R1.fastq.gz R2.fastq.gz | /software/samtools view -Sb - > sampleA.bam
 rm -f R1.fastq.gz R2.fastq.gz
 ```
 As you can see the command line described in the pipeline YAML are translated into normal Unix command lines, therefore every solution that works on a standard Unix shell (pipes, bash substitutions) is perfectly acceptable.
@@ -556,7 +556,7 @@ Now I want to execute more steps in a single job for each sample. The pipeline Y
 pipeline: resequencing
 
 resources:
-  bwa: /software/bwa-0.6.2/bwa
+  bwa: /software/bwa
   samtools: /software/samtools
   mark_dup: /software/picard-tools-1.77/MarkDuplicates.jar
   gatk: /software/GenomeAnalysisTK/GenomeAnalysisTK.jar
@@ -595,7 +595,7 @@ mkdir -p /storage/results/sampleB/mapping
 cd /storage/results/sampleB/mapping
 ls /ngs_reads/sampleB/*_R1_*.gz | xargs zcat | pigz -p 10 >> R1.fastq.gz
 ls /ngs_reads/sampleB/*_R2_*.gz | xargs zcat | pigz -p 10 >> R2.fastq.gz
-/software/bwa-0.6.2/bwa sampe -P /storage/genomes/bwa_index/genome <(/software/bwa-0.6.2/bwa aln -t 4 -q 20 /genomes/bwa_index/genome R1.fastq.gz) <(/software/bwa-0.6.2/bwa aln -t 4 -q 20 /genomes/bwa_index/genome R2.fastq.gz) R1.fastq.gz R2.fastq.gz | /software/samtools view -Sb - > sampleA.bam
+/software/bwa sampe -P /storage/genomes/bwa_index/genome <(/software/bwa aln -t 4 -q 20 /genomes/bwa_index/genome R1.fastq.gz) <(/software/bwa aln -t 4 -q 20 /genomes/bwa_index/genome R2.fastq.gz) R1.fastq.gz R2.fastq.gz | /software/samtools view -Sb - > sampleA.bam
 rm -f R1.fastq.gz R2.fastq.gz
 mkdir -p /storage/results/sampleB/mark_dup
 cd /storage/results/sampleB/mark_dup
