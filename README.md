@@ -583,11 +583,11 @@ steps:
     cpu: 12
 
   mark_dup:
-		pre: mapping
+    pre: mapping
     run: java -Xmx4g -jar <mark_dup> VERBOSITY=INFO MAX_RECORDS_IN_RAM=500000 VALIDATION_STRINGENCY=SILENT INPUT=<mapping/sample>.sorted.bam OUTPUT=<sample>.md.sort.bam METRICS_FILE=<sample>.metrics REMOVE_DUPLICATES=false
 
   realign_target:
-		pre: mark_dup
+    pre: mark_dup
     run: java -Xmx4g -jar <gatk> -T RealignerTargetCreator -I <mark_dup/sample>.md.sort.bam -nt 8 -R <genome> -o <sample>.indels.intervals
     cpu: 8
 ```
