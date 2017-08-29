@@ -1,5 +1,5 @@
 ---
-title: 'Pipengine: an ultra simple YAML-based pipeline execution engine'
+title: 'Pipengine: an ultra light YAML-based pipeline execution engine'
 tags:
   - pipeline
   - workflows
